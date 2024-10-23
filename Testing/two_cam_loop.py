@@ -1,9 +1,11 @@
 import pyrealsense2 as rs
 import time
+import cv2
+import numpy as np
 
 # Initialize pipelines for each camera
 pipelines = []
-serial_numbers = ['<serial_number_1>', '<serial_number_2>']  # Replace with your camera serial numbers
+serial_numbers = ['<serial_number_1>', '<serial_number_2>']
 
 for serial in serial_numbers:
     pipeline = rs.pipeline()
@@ -26,10 +28,34 @@ try:
             color_frame = frame.get_color_frame()
             depth_frame = frame.get_depth_frame()
             
-            # Here, you could save the frames to disk, or process them as needed
-            print(f"Camera {i} - Depth Frame: {depth_frame}, Color Frame: {color_frame}")
-
-        time.sleep(0.1)  # Adjust the sleep time as needed
+            # Check for valid frames
+            if not depth_frame or not color_frame:
+                continue
+            
+            # Convert images to numpy arrays
+            depth_image = np.asanyarray(depth_frame.get_data())
+            color_image = np.asanyarray(color_frame.get_data())
+            
+            # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
+            depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+            
+            # Get the dimensions of the depth and colour map for use later
+            depth_colormap_dim = depth_colormap.shape
+            color_colormap_dim = color_image.shape
+            
+            # If depth and color resolutions are different, resize color image to match depth image for display
+            if depth_colormap_dim != color_colormap_dim:
+                resized_color_image = cv2.resize(color_image, dsize=(depth_colormap_dim[1], depth_colormap_dim[0]), interpolation=cv2.INTER_AREA)
+                images = np.hstack((resized_color_image, depth_colormap))
+            else:
+                images = np.hstack((color_image, depth_colormap))
+                
+            # Show images
+            cv2.namedWindow('RealSense {i}', cv2.WINDOW_AUTOSIZE)
+            cv2.imshow('RealSense {i}', images)
+            cv2.waitKey(1)
+            
+        time.sleep(0.1)
 
 finally:
     # Stop all pipelines
