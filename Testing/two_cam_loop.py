@@ -5,7 +5,7 @@ import numpy as np
 
 # Initialize pipelines for each camera
 pipelines = []
-serial_numbers = ['<serial_number_1>', '<serial_number_2>']
+serial_numbers = ['141322252882', '138322252073']
 
 for serial in serial_numbers:
     pipeline = rs.pipeline()
@@ -50,9 +50,8 @@ try:
             else:
                 images = np.hstack((color_image, depth_colormap))
                 
-            # Show images
-            cv2.namedWindow('RealSense {i}', cv2.WINDOW_AUTOSIZE)
-            cv2.imshow('RealSense {i}', images)
+            cv2.namedWindow('RealSense ' + str(i), cv2.WINDOW_AUTOSIZE)
+            cv2.imshow('RealSense ' + str(i), images)
             cv2.waitKey(1)
             
         time.sleep(0.1)
