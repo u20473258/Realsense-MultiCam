@@ -26,8 +26,10 @@ def capture_frames(serial_number, queue):
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
             
+            depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+            
             # Send frames to the queue
-            queue.put((serial_number, color_image, depth_image))
+            queue.put((serial_number, color_image, depth_colormap))
 
     finally:
         pipeline.stop()
@@ -47,16 +49,16 @@ def process_frames(queue):
 
     cv2.destroyAllWindows()
 
-# List of camera serial numbers
-serial_numbers = ['141322252882', '138322252073']
+# Get context for handling an arbitrary number of cameras
+ctx = rs.context()
 
 # Queue for sharing frames between processes
 frame_queue = Queue()
 
 # Start a process for each camera
 processes = []
-for serial in serial_numbers:
-    p = Process(target=capture_frames, args=(serial, frame_queue))
+for device in ctx.devices:
+    p = Process(target=capture_frames, args=(device.get_info(rs.camera_info.serial_number), frame_queue))
     processes.append(p)
     p.start()
 
