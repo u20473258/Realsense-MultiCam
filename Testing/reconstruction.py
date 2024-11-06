@@ -10,8 +10,8 @@ import pyrealsense2 as rs
 # frame_number -> which frame or image number to use
 # return: the depth and colour images as numpy arrays
 def load_images_from_png(serial_number, frame_number):
-    colour = np.array(Image.open(f"Testing/rgb_images/rgb_frame_{frame_number}_cam{serial_number}.png"))
-    depth = np.array(Image.open(f"Testing/depth_images/depth_frame_{frame_number}_cam{serial_number}.png"))
+    colour = np.array(Image.open(f"rgb_images/rgb_frame_{frame_number}_cam{serial_number}.png"))
+    depth = np.array(Image.open(f"depth_images/depth_frame_{frame_number}_cam{serial_number}.png"))
     
     return colour, depth
 
@@ -21,11 +21,17 @@ def load_images_from_png(serial_number, frame_number):
 # return: fx, fy, ppx, ppy
 def load_cam_intrinsics(serial_number, frame_number):
     # Open the frame_metadata csv
-    df = pd.read_csv("Testing/frame_metadata.csv")
+    df = pd.read_csv("frame_metadata.csv")
     # Search for the correct row
     row_num = 0
-    while df.loc[row_num, "serial_number"] != serial_number and df.loc[row_num, "frame_number"] != frame_number:
-        row_num += 1
+    while True:
+        if df.loc[row_num, "serial_number"] == serial_number:
+            if df.loc[row_num, "frame_number"] == frame_number:
+                break
+            else:
+                row_num += 1
+        else:
+            row_num += 1
     
     return df.loc[row_num, "fx"], df.loc[row_num, "fy"], df.loc[row_num, "ppx"], df.loc[row_num, "ppy"]
 
@@ -50,8 +56,8 @@ def create_pcd(serial_number, depth_image, colour_image, fx, fy, ppx, ppy,
     rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
         o3d.geometry.Image(colour_image),
         o3d.geometry.Image(depth_image),
-        depth_scale=1000.0,  # Adjust according to the depth unit in your images (e.g., 1000 for mm to meters)
-        depth_trunc=3.0,  # Truncate depth at 3 meters
+        depth_scale=depth_scale,
+        depth_trunc=depth_trunc,  
         convert_rgb_to_intensity=False
     )
 
@@ -73,7 +79,7 @@ if __name__ == "__main__":
         np.array([[1, 0, 0, -0.3], [0, 1, 0, 0], [0, 0, 1, -0.1], [0, 0, 0, 1]])  # Camera 3
     ]
     
-    frame_numbers = [50, 50, 50]
+    frame_numbers = [53, 50, 50]
     
     # Define the combined point cloud
     pcd_combined = o3d.geometry.PointCloud()
@@ -82,14 +88,16 @@ if __name__ == "__main__":
     ctx = rs.context()
     i = 0
     for device in ctx.devices:
-        colour_image, depth_image = load_images_from_png(device.get_info(rs.camera_info.serial_number), frame_numbers[i])
-        fx, fy, ppx, ppy = load_cam_intrinsics(device.get_info(rs.camera_info.serial_number), frame_numbers[i])
-        pcd = create_pcd(device.get_info(rs.camera_info.serial_number), depth_image, colour_image, fx, fy, ppx, ppy, transforms[i], 1000.0, 3)
-        
+        serial = np.int64(device.get_info(rs.camera_info.serial_number))
+        colour_image, depth_image = load_images_from_png(serial, frame_numbers[i])
+        fx, fy, ppx, ppy = load_cam_intrinsics(serial, frame_numbers[i])
+        pcd = create_pcd(serial, depth_image, colour_image, fx, fy, ppx, ppy, transforms[i], 1.0, 1)
+        # Add generate pcd to combined one
         pcd_combined += pcd
+        i+=1
     
     # Optional: Downsample the point cloud for noise reduction and efficiency
-    pcd_combined = pcd_combined.voxel_down_sample(voxel_size=0.005)
+    # pcd_combined = pcd_combined.voxel_down_sample(voxel_size=0.005)
 
     # Save the combined point cloud
     o3d.io.write_point_cloud("3d_reconstruction.ply", pcd_combined)
