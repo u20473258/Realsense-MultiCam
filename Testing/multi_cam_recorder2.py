@@ -18,19 +18,34 @@ def capture_frames(serial_number, queue):
     
     # Store frame number
     frame_number = 0
+    
+    # Create an align object to align depth to color for each pipeline
+    align = rs.align(rs.stream.color)
 
     try:
         while True:
+            # Get frames
             frames = pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()
-            depth_frame = frames.get_depth_frame()
             
+            # Align the colour and depth frames
+            aligned_frames = align.process(frames)
+            
+            # Get aligned depth and colour frames
+            color_frame = aligned_frames.get_color_frame()
+            depth_frame = aligned_frames.get_depth_frame()
+            
+            # If frames could not be retrieved
             if not color_frame or not depth_frame:
                 continue
             
             # Convert frames to numpy arrays
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
+            
+            # Get camera intrinsics
+            intrinsics = color_frame.profile.as_video_stream_profile().intrinsics
+            fx, fy, ppx, ppy = intrinsics.fx, intrinsics.fy, intrinsics.ppx, intrinsics.ppy
+
             
             # Retrieve timestamps
             rgb_timestamp = color_frame.get_timestamp()
@@ -41,17 +56,16 @@ def capture_frames(serial_number, queue):
             frame_number += 1
             
             # Send frames to the queue
-            queue.put((serial_number, color_image, depth_colormap, rgb_timestamp, depth_timestamp, frame_number))
+            queue.put((serial_number, color_image, depth_colormap, rgb_timestamp, depth_timestamp, frame_number, fx, fy, ppx, ppy))
 
     finally:
         pipeline.stop()
 
 # Process the frames from the queue
 def process_frames(queue, csv_filename):
-    # camera_number = 0
     while True:
         # Receive data from the queue
-        serial_number, color_image, depth_image, rgb_timestamp, depth_timestamp, frame_number = queue.get()
+        serial_number, color_image, depth_image, rgb_timestamp, depth_timestamp, frame_number, fx, fy, ppx, ppy = queue.get()
         
         # Display or process frames as needed
         cv2.imshow(f"Color Stream - Camera {serial_number}", color_image)
@@ -61,20 +75,16 @@ def process_frames(queue, csv_filename):
         with open(csv_filename, mode="a", newline="") as file:
             writer = csv.writer(file)
             writer.writerow([
-                frame_number, serial_number, rgb_timestamp, depth_timestamp
+                frame_number, serial_number, rgb_timestamp, depth_timestamp, fx, fy, ppx, ppy
             ])
             
         # Save RGB image
         rgb_filename = f"rgb_images/rgb_frame_{frame_number}_cam{serial_number}.png"
         cv2.imwrite(rgb_filename, color_image)
         
-        # Save Depth image
+        # Save depth image
         depth_filename = f"depth_images/depth_frame_{frame_number}_cam{serial_number}.png"
         cv2.imwrite(depth_filename, depth_image)
-            
-        # camera_number += 1
-        # if camera_number == 3:
-        #     camera_number = 0
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -103,7 +113,8 @@ csv_filename = "frame_metadata.csv"
 with open(csv_filename, mode="w", newline="") as file:
     writer = csv.writer(file)
     # Write CSV header
-    writer.writerow(["frame_number", "serial_number", "rgb_timestamp", "depth_timestamp"])
+    writer.writerow(["frame_number", "serial_number", "rgb_timestamp", 
+                     "depth_timestamp", "fx", "fy", "ppx", "ppy"])
 
 # Start a process for each camera
 processes = []
