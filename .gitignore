@@ -4,3 +4,9 @@ Testing/depth_images
 Testing/rgb_images
 Testing/frame_metadata.csv
 Testing/3d_reconstruction.ply
+Testing/cam1_calibration
+Testing/cam2_calibration
+Testing/camera_matrix.npy
+Testing/distortion_coefficients.npy
+Testing/extrinsics_rotation.npy
+Testing/extrinsics_translation.npy
