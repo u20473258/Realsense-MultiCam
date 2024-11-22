@@ -123,6 +123,38 @@ if __name__ == "__main__":
     
     print("Source has color:", point_clouds[0].has_colors())
     print("Target has color:", point_clouds[1].has_colors())
+    
+
+# Load point clouds
+pcd1 = point_clouds[0]
+pcd2 = point_clouds[1]
+
+# Downsample and estimate normals
+pcd1_down = pcd1.voxel_down_sample(voxel_size=0.05)
+pcd2_down = pcd2.voxel_down_sample(voxel_size=0.05)
+pcd1_down.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+pcd2_down.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+
+# # Apply point-to-plane ICP
+# result_icp = o3d.pipelines.registration.registration_icp(
+#     pcd1_down, pcd2_down, max_correspondence_distance=0.1,
+#     criteria=o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=2000),
+#     estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPlane()
+# )
+
+# Apply point-to-point ICP
+result_icp = o3d.pipelines.registration.registration_icp(
+    pcd1_down, pcd2_down, max_correspondence_distance=0.5,
+    criteria=o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=10000),
+    estimation_method=o3d.pipelines.registration.TransformationEstimationPointToPoint()
+)
+
+# Apply the transformation to the original point cloud
+pcd2.transform(result_icp.transformation)
+
+# Visualize aligned point clouds
+o3d.visualization.draw_geometries([pcd1, pcd2])
+
 
 
 
