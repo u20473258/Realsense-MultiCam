@@ -14,3 +14,7 @@ test.bag
 Testing/cam1.ply
 Testing/cam2.ply
 Testing/CC_reconstruction.bin
+Testing2/depth_images
+Testing2/rgb_images
+Testing2/frame_metadata.csv
+Testing2/camera_intrinsics.csv
