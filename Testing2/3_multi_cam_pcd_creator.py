@@ -4,6 +4,8 @@ from PIL import Image
 import pandas as pd
 import pyrealsense2 as rs
 import cv2
+import os
+import shutil
 
 # Loads images from png file
 # folder_path -> folder path to find image
@@ -71,6 +73,11 @@ if __name__ == "__main__":
     # Store the serial numbers
     serial_numbers = ["138322252073", "141322252882"]
     
+    # Create the folder to store point clouds
+    if os.path.exists("point_clouds"):
+        shutil.rmtree("point_clouds")
+    os.makedirs("point_clouds", exist_ok=True)
+    
     for device in serial_numbers:
         serial = np.int64(device)
         # Load images
@@ -85,5 +92,6 @@ if __name__ == "__main__":
         # Display point cloud
         o3d.visualization.draw_geometries([pcd])
         # Save point cloud
-        o3d.io.write_point_cloud(device + ".ply", pcd)
+        filename = f"point_clouds/{device}.ply"
+        o3d.io.write_point_cloud(filename, pcd)
     
