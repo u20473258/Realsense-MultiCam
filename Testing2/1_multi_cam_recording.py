@@ -6,6 +6,57 @@ import csv
 import os
 import shutil
 
+# Loads the rgb and depth timestamp for a specific camera from a .csv file
+# serial_number -> the serial number of the camera
+def get_camera_intrinsics(serial_number, csv_filename):
+    # Initialize the pipeline
+    pipeline = rs.pipeline()
+    config = rs.config()
+
+    # Configure the stream
+    config.enable_device(serial_number)
+    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)  # Color stream
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)   # Depth stream
+
+    # Start the pipeline
+    pipeline_profile = pipeline.start(config)
+
+    # Get stream profiles
+    color_profile = pipeline_profile.get_stream(rs.stream.color)  # Color stream
+    depth_profile = pipeline_profile.get_stream(rs.stream.depth)  # Depth stream
+
+    # Get intrinsics
+    color_intrinsics = color_profile.as_video_stream_profile().get_intrinsics()
+    depth_intrinsics = depth_profile.as_video_stream_profile().get_intrinsics()
+
+    # Print intrinsic parameters
+    # print("Color Camera Intrinsics:")
+    # print(f"  Width: {color_intrinsics.width}")
+    # print(f"  Height: {color_intrinsics.height}")
+    # print(f"  Focal Length (fx, fy): ({color_intrinsics.fx}, {color_intrinsics.fy})")
+    # print(f"  Principal Point (cx, cy): ({color_intrinsics.ppx}, {color_intrinsics.ppy})")
+    # print(f"  Distortion Model: {color_intrinsics.model}")
+    # print(f"  Distortion Coefficients: {color_intrinsics.coeffs}")
+
+    # print("\nDepth Camera Intrinsics:")
+    # print(f"  Width: {depth_intrinsics.width}")
+    # print(f"  Height: {depth_intrinsics.height}")
+    # print(f"  Focal Length (fx, fy): ({depth_intrinsics.fx}, {depth_intrinsics.fy})")
+    # print(f"  Principal Point (cx, cy): ({depth_intrinsics.ppx}, {depth_intrinsics.ppy})")
+    # print(f"  Distortion Model: {depth_intrinsics.model}")
+    # print(f"  Distortion Coefficients: {depth_intrinsics.coeffs}")
+    
+    # Write metadata to CSV
+    with open(csv_filename, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([
+            serial_number, color_intrinsics.fx, color_intrinsics.fy, color_intrinsics.ppx, color_intrinsics.ppy
+        ])
+
+    # Stop the pipeline
+    pipeline.stop()
+
+
 # Define a function for capturing frames from a single camera
 def capture_frames(serial_number, queue):
     pipeline = rs.pipeline()
@@ -103,6 +154,8 @@ if os.path.exists("depth_images"):
     shutil.rmtree("depth_images")
 if os.path.exists("frame_metadata.csv"):
     os.remove("frame_metadata.csv")
+if os.path.exists("camera_intrinsics.csv"):
+    os.remove("camera_intrinsics.csv")
 
 os.makedirs("rgb_images", exist_ok=True)
 os.makedirs("depth_images", exist_ok=True)
@@ -114,10 +167,19 @@ with open(csv_filename, mode="w", newline="") as file:
     # Write CSV header
     writer.writerow(["frame_number", "serial_number", "rgb_timestamp", 
                      "depth_timestamp"])
+    
+# Create csv files for each camera's intrinsic parameters
+csv_filename = "camera_intrinsics.csv"
+with open(csv_filename, mode="w", newline="") as file:
+    writer = csv.writer(file)
+    # Write CSV header
+    writer.writerow(["serial_number", "fx", "fy", "ppx", "ppy"])
 
 # Start a process for each camera
 processes = []
 for device in ctx.devices:
+    # Store the camera intrinsics for each camera
+    get_camera_intrinsics(device.get_info(rs.camera_info.serial_number), "camera_intrinsics.csv")
     p = Process(target=capture_frames, args=(device.get_info(rs.camera_info.serial_number), frame_queue))
     processes.append(p)
     p.start()
