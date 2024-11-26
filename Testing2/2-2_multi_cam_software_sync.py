@@ -68,14 +68,17 @@ if __name__ == "__main__":
         # "138322252073" : 0
     }
     
+    # Frames starting number
+    search_begin_frame_num = 400
+    
     # Total number of frames captured
-    total_frames = 568
+    total_frames = 500
     
     # Frame numbers that meet the threshold
     frame_sets = []
     
     # Threshold of maximum difference between timestamps
-    threshold = 5 #ms
+    threshold = 35 #ms
     
     # Store the current timestamps
     cam1_timestamp = 0
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     matching_timestamp_found = True
     
     # For each of cam 1's timestamps
-    for i in range(1, total_frames+1):
+    for i in range(search_begin_frame_num, total_frames+1):
         # Store the current cam1 timestamp
         cam1_timestamp, previous_row_num[serial_numbers[0]] = get_timestamps(np.int64(serial_numbers[0]), i, use_rgb_stamp, previous_row_num[serial_numbers[0]])
         
@@ -103,14 +106,14 @@ if __name__ == "__main__":
             # Does cam n have a timestamp that closely matches cam1's ith timestamp?
             for k in range(1, total_frames+1):
                 # Get the current camn timestamp
-                camn_timestamp, previous_row_num[serial_numbers[j]] = get_timestamps(np.int64(serial_numbers[j]), i, use_rgb_stamp, previous_row_num[serial_numbers[j]])
+                camn_timestamp, previous_row_num[serial_numbers[j]] = get_timestamps(np.int64(serial_numbers[j]), k, use_rgb_stamp, previous_row_num[serial_numbers[j]])
                 
                 # Test if difference between timestamps is below threshold
                 if abs(cam1_timestamp - camn_timestamp) < threshold:
                     frame_set.append(k)
                     
                     # No need to keep on looking for a match in the current camera.
-                    previous_row_num[serial_numbers[j]]
+                    previous_row_num[serial_numbers[j]] = 0
                     break
                 
                 # Check if this is the last of cam n's frames
@@ -118,7 +121,7 @@ if __name__ == "__main__":
                     matching_timestamp_found = False
                 
             # Reset the previous row number for cam n
-            previous_row_num[serial_numbers[j]]
+            previous_row_num[serial_numbers[j]] = 0
                     
             # If there is no matching timestamp for the current camera
             if matching_timestamp_found == False:
@@ -126,7 +129,7 @@ if __name__ == "__main__":
                 break
             
         # Check if there is a matching timestamp found for each camera
-        if matching_timestamp_found == False:
+        if matching_timestamp_found == True:
             # Store the frameset
             frame_sets.append(frame_set)
             
