@@ -24,12 +24,23 @@ def load_point_cloud(serial_number):
 
 if __name__ == "__main__":
     # Store the serial numbers
-    serial_numbers = ["138322252073", "141322252882"]
+    serial_numbers = ["138322250306", "138322252073", "141322252627", "141322252882"]
     
     # Store transformations to align point clouds
     transforms = [
     np.eye(4),  # Camera 1 (identity, reference frame)
-    np.array([[0.889,	-0.012,	-0.457,	-189.380], [0.001,	1.000,	-0.024,	-1.555], [0.457,	0.021,	0.889,	-180.769],[0.000,	0.000,	0.000,	1.000]])
+    np.array([[0.912,	0.037,  -0.408, 0.053], 
+              [-0.005,	0.997,  0.081,  0.000], 
+              [0.410,	-0.072, 0.909,  0.012],
+              [0.000,	0.000,  0.000,  1.000]]),
+    np.array([[1.000,   0.012,  0.004,  0.002 ], 
+              [-0.012,  0.989,  0.149,  -0.027], 
+              [-0.002,  -0.149, 0.989,  -0.009],
+              [0.000,   0.000,  0.000,  1.000 ]]),
+    np.array([[0.963,   -0.025, 0.269,  -0.026], 
+              [0.025,   1.000,  0.001,  -0.001], 
+              [-0.269,  0.006,  0.963,  0.002 ],
+              [0.000,   0.000,  0.000,  1.000 ]])
     ]
     
     # Define the combined point cloud
@@ -54,6 +65,6 @@ if __name__ == "__main__":
     o3d.visualization.draw_geometries(point_clouds)
     
     # Save the combined point cloud
-    filename = f"point_clouds/{device}.ply"
-    o3d.io.write_point_cloud("reconstruction.ply", pcd_combined)
+    filename = f"point_clouds/reconstruction.ply"
+    o3d.io.write_point_cloud(filename, pcd_combined)
 
