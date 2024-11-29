@@ -19,3 +19,8 @@ Testing2/rgb_images
 Testing2/frame_metadata.csv
 Testing2/camera_intrinsics.csv
 Testing2/point_clouds
+Testing3/depth_images
+Testing3/rgb_images
+Testing3/frame_metadata.csv
+Testing3/camera_intrinsics.csv
+Testing3/point_clouds
