@@ -24,3 +24,4 @@ Testing3/rgb_images
 Testing3/frame_metadata.csv
 Testing3/camera_intrinsics.csv
 Testing3/point_clouds
+Testing3/depth_colourmaps
