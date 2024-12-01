@@ -8,11 +8,11 @@ import numpy as np
 def load_point_cloud(serial_number):
     # Load the .ply file
     file_path = f"point_clouds/{serial_number}.ply"
-    point_cloud = o3d.io.read_point_cloud(file_path)
-
+    pcd = o3d.io.read_point_cloud(file_path)
+    
     # Check if the point cloud is loaded
-    if not point_cloud.is_empty():
-        return point_cloud
+    if not pcd.is_empty():
+        return pcd
     else:
         print("Failed to load point cloud. Check the file path or format.")
         return None
@@ -46,13 +46,34 @@ def pairwise_registration(source, target, voxel_size):
     
 if __name__ == "__main__":
     # Store the serial numbers
-    serial_numbers = ["138322250306", "138322252073", "141322252627", "141322252882"]
+    serial_numbers = ["138322250306", "141322252882"]
+    
+    # Store initial transformations from Cloud Compare
+    # init_transforms = [
+    # np.eye(4),  # Camera 1 (identity, reference frame)
+    # np.array([[0.952304544001, 0.055685926827, 0.300025220655, -0.337908239954],
+    #           [-0.046863706186, 0.998233224821, -0.036527002431, 0.026966347488],
+    #           [-0.301529183527, 0.020724536604, 0.953231684883, 0.041012801797],
+    #           [0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000]])
+    # ]
+    init_transforms = [
+    np.eye(4),  # Camera 1 (identity, reference frame)
+    np.array([[0.935887225885, -0.003083919642, 0.352286232862, -0.368943112841],
+              [0.012670791030, 0.999609376345, -0.024910756250, 0.017541172967],
+              [-0.352071798756, 0.027777403801, 0.935560721898, 0.053161248312],
+              [0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000]])
+    ]
+    
+
     
     # Load point cloud
-    point_clouds = [load_point_cloud(device) for device in serial_numbers]
+    raw_point_clouds = [load_point_cloud(device) for device in serial_numbers]
+    
+    # Implement initial transformations
+    point_clouds = [pcd.transform(init_transforms[i]) for i, pcd in enumerate(raw_point_clouds)]
     
     # Pre-process point clouds
-    voxel_size = 0.02
+    voxel_size = 0.002
     processed_pcs = [preprocess_point_cloud(pcd, voxel_size) for pcd in point_clouds]
     
     # Register point clouds pairwise
@@ -68,7 +89,7 @@ if __name__ == "__main__":
         aligned_pcs.append(aligned_pcd)
         
         # Visualize aligned point clouds
-        o3d.visualization.draw_geometries(aligned_pcd)
+        o3d.visualization.draw_geometries([aligned_pcd])
     
     # Define the combined point cloud
     pcd_combined = o3d.geometry.PointCloud()
@@ -76,9 +97,11 @@ if __name__ == "__main__":
         pcd_combined += pcd
         
     # Visualize combined point cloud
-    o3d.visualization.draw_geometries(pcd_combined)
+    o3d.visualization.draw_geometries([pcd_combined])
         
     # Save the combined point cloud
-    filename = f"point_clouds/reconstruction.ply"
+    filename = f"point_clouds/fine_reconstruction.ply"
     o3d.io.write_point_cloud(filename, pcd_combined)
+
+    
     
