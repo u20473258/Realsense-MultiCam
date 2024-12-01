@@ -5,6 +5,7 @@ import numpy as np
 import csv
 import os
 import shutil
+import sys
 
 # Loads the rgb and depth timestamp for a specific camera from a .csv file
 # serial_number -> the serial number of the camera
@@ -85,7 +86,7 @@ def capture_frames(serial_number, queue):
             frame_number += 1
             
             # Send frames to the queue
-            queue.put((serial_number, color_image, depth_colormap, rgb_timestamp, depth_timestamp, frame_number))
+            queue.put((serial_number, color_image, depth_image, depth_colormap, rgb_timestamp, depth_timestamp, frame_number))
 
     finally:
         pipeline.stop()
@@ -94,11 +95,11 @@ def capture_frames(serial_number, queue):
 def process_frames(queue, csv_filename):
     while True:
         # Receive data from the queue
-        serial_number, color_image, depth_image, rgb_timestamp, depth_timestamp, frame_number = queue.get()
+        serial_number, color_image, depth_image, depth_colormap, rgb_timestamp, depth_timestamp, frame_number = queue.get()
         
         # Display or process frames as needed
         cv2.imshow(f"Color Stream - Camera {serial_number}", color_image)
-        cv2.imshow(f"Depth Stream - Camera {serial_number}", depth_image)
+        cv2.imshow(f"Depth Stream - Camera {serial_number}", depth_colormap)
         
         # Write metadata to CSV
         with open(csv_filename, mode="a", newline="") as file:
@@ -111,9 +112,15 @@ def process_frames(queue, csv_filename):
         rgb_filename = f"rgb_images/rgb_frame_{frame_number}_cam{serial_number}.png"
         cv2.imwrite(rgb_filename, color_image)
         
+        # Save depth colourmap
+        colourmap_filename = f"depth_colourmaps/depth_frame_{frame_number}_cam{serial_number}.png"
+        cv2.imwrite(colourmap_filename, depth_colormap)
+        
         # Save depth image
-        depth_filename = f"depth_images/depth_frame_{frame_number}_cam{serial_number}.png"
-        cv2.imwrite(depth_filename, depth_image)
+        depth_filename = f"depth_images/depth_frame_{frame_number}_cam{serial_number}"
+        np.save(depth_filename, depth_image)
+        
+        
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -129,6 +136,8 @@ frame_queue = Queue()
 # Configure settings for saving images
 if os.path.exists("rgb_images"):
     shutil.rmtree("rgb_images")
+if os.path.exists("depth_colourmaps"):
+    shutil.rmtree("depth_colourmaps")
 if os.path.exists("depth_images"):
     shutil.rmtree("depth_images")
 if os.path.exists("frame_metadata.csv"):
@@ -137,6 +146,7 @@ if os.path.exists("camera_intrinsics.csv"):
     os.remove("camera_intrinsics.csv")
 
 os.makedirs("rgb_images", exist_ok=True)
+os.makedirs("depth_colourmaps", exist_ok=True)
 os.makedirs("depth_images", exist_ok=True)
 
 # Create csv files for each camera's metadata
