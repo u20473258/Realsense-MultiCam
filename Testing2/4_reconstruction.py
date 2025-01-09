@@ -43,6 +43,8 @@ if __name__ == "__main__":
               [0.000,   0.000,  0.000,  1.000 ]])
     ]
     
+    
+    
     # Define the combined point cloud
     pcd_combined = o3d.geometry.PointCloud()
     

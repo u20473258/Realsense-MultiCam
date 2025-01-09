@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 
-# Loads the rgb and depth timestamp for a specific camera from a .csv file
+# Loads the rgb and depth timestamp for a specific camera from a .csv file. The search begins
+# from a given starting_row.
 # serial_number -> the serial number of the camera
 # frame_number -> which frame or image number to use
 # return: rgb_timestamp, depth_timestampm, prev_row_num
@@ -31,17 +32,16 @@ def get_timestamps(serial_number, frame_number, starting_row):
 
 
 # Store the serial numbers of the cameras used
-serial_numbers = ["138322252073", "141322252882"]
+serial_numbers = ["141322252882", "138322250306"]
 # Store the previous row number for each serial number. This prevents the algorithm from searching
 # through the entire .csv file
 previous_row_num = {
-    "138322252073" : 0,
-    "141322252882" : 0
-    # "138322252073" : 0,
+    "141322252882" : 0,
+    "138322250306" : 0
     # "138322252073" : 0
 }
 # Total number of frames captured
-total_frames = 690
+total_frames = 568
 # Frame numbers that meet the threshold
 frame_set = []
 # Threshold of maximum difference between timestamps

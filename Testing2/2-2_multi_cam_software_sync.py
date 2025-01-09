@@ -59,26 +59,27 @@ for i in range(len(serial_numbers)):
 use_rgb_stamp = False
 if __name__ == "__main__":
     # Store the serial numbers of the cameras used
-    serial_numbers = ["141322252882", "138322250306"]
+    serial_numbers = ["138322250306", "138322252073", "141322252627", "141322252882"]
     # Store the previous row number for each serial number. This prevents the algorithm from searching
     # through the entire .csv file
     previous_row_num = {
         "141322252882" : 0,
-        "138322250306" : 0
-        # "138322252073" : 0
+        "138322250306" : 0,
+        "138322252073" : 0,
+        "141322252627" : 0
     }
     
     # Frames starting number
-    search_begin_frame_num = 400
+    search_begin_frame_num = 50
     
     # Total number of frames captured
-    total_frames = 500
+    total_frames = 290
     
     # Frame numbers that meet the threshold
     frame_sets = []
     
     # Threshold of maximum difference between timestamps
-    threshold = 35 #ms
+    threshold = 90 #ms
     
     # Store the current timestamps
     cam1_timestamp = 0

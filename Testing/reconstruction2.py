@@ -6,8 +6,14 @@ import cv2
 fx1, fy1 = 382.2030, 388.7367  # Camera 1 focal lengths
 cx1, cy1 = 317.0201, 243.9064  # Camera 1 principal points
 
+# fx1, fy1 = 380.305, 380.0055  # Camera 1 focal lengths
+# cx1, cy1 = 322.0625, 243.6006  # Camera 1 principal points
+
 fx2, fy2 = 392.6607, 394.1234  # Camera 2 focal lengths
 cx2, cy2 = 315.2463, 246.4275  # Camera 2 principal points
+
+# fx2, fy2 = 378.843, 378.529  # Camera 2 focal lengths
+# cx2, cy2 = 317.564, 246.684  # Camera 2 principal points
 
 # Intrinsic matrix for Camera 1
 K1 = np.array([[fx1, 0, cx1],
@@ -20,23 +26,34 @@ K2 = np.array([[fx2, 0, cx2],
                [0, 0, 1]])
 
 # Transformation matrix (extrinsics) from Camera 1 to Camera 2
-T = np.array([[0.8905, -0.0015,  0.4550, 251.0631],
-              [-0.0087, 0.9998, 0.0204, 3.0915],
-              [-0.4549, -0.0222, 0.8903, 74.1394],
-              [0, 0, 0, 1]])
+# T = np.array([[0.8905, -0.0015,  0.4550, 251.0631],
+#               [-0.0087, 0.9998, 0.0204, 3.0915],
+#               [-0.4549, -0.0222, 0.8903, 74.1394],
+#               [0, 0, 0, 1]])
+
+T = np.array([[0.889,	-0.012,	-0.457,	-189.380],
+              [0.001,	1.000,	-0.024,	-1.555],
+              [0.457,	0.021,	0.889,	-180.769],
+              [0.000,	0.000,	0.000,	1.000]])
+
+# Invert the transformation matrix
+T_inv = np.linalg.inv(T)
 
 # Load depth and color images (placeholders; replace with actual paths to your images)
-depth_image1 = cv2.imread("rgb_images/depth_frame_570_cam138322252073.png", cv2.IMREAD_UNCHANGED)
-color_image1 = cv2.imread("depth_images/rgb_frame_570_cam138322252073.png")
-depth_image2 = cv2.imread("rgb_images/depth_frame_571_cam138322252073.png", cv2.IMREAD_UNCHANGED)
-color_image2 = cv2.imread("depth_images/rgb_frame_571_cam138322252073.png")
+depth_image1 = cv2.imread("depth_images/depth_frame_570_cam138322252073.png", cv2.IMREAD_UNCHANGED)
+color_image1 = cv2.imread("rgb_images/rgb_frame_570_cam138322252073.png")
+depth_image2 = cv2.imread("depth_images/depth_frame_571_cam138322252073.png", cv2.IMREAD_UNCHANGED)
+color_image2 = cv2.imread("rgb_images/rgb_frame_571_cam138322252073.png")
+
+# depth_image = np.asanyarray(depth_image1.get_data())
+np.set_printoptions(threshold = np.inf)
 
 # Create Open3D point clouds from the depth images
 def create_point_cloud_from_depth_image(depth_image, color_image, intrinsic_matrix):
     # Create Open3D RGBD image
     color = o3d.geometry.Image(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
     depth = o3d.geometry.Image(depth_image)
-    rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth, convert_rgb_to_intensity=False)
+    rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(color, depth, depth_scale= 0.1,convert_rgb_to_intensity=False)
     
     # Create intrinsic parameters object
     intrinsics = o3d.camera.PinholeCameraIntrinsic()
@@ -60,7 +77,15 @@ pcd_combined = pcd1 + pcd2
 # Save the combined point cloud
 o3d.io.write_point_cloud("3d_reconstruction.ply", pcd_combined)
 
+# Save the combined point cloud
+o3d.io.write_point_cloud("cam1.ply", pcd1)
+
+# Save the combined point cloud
+o3d.io.write_point_cloud("cam2.ply", pcd2)
+
 # Visualize the combined point cloud
+o3d.visualization.draw_geometries([pcd1], window_name="3D Reconstruction", width=800, height=600)
+o3d.visualization.draw_geometries([pcd2], window_name="3D Reconstruction", width=800, height=600)
 o3d.visualization.draw_geometries([pcd_combined], window_name="3D Reconstruction", width=800, height=600)
 
-print("3D reconstruction saved as 3d_reconstruction.ply")
+print("3D reconstruction saved as 3d_reconstruction2.ply")

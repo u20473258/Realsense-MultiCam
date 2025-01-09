@@ -33,53 +33,27 @@ def get_timestamps(serial_number, frame_number, rgb_stamp, starting_row):
         return df.loc[row_num, "depth_timestamp"], row_num
 
 
-
-# Store the serial numbers of the cameras used
-serial_numbers = ["141322252882", "138322250306"]
-# Store the previous row number for each serial number. This prevents the algorithm from searching
-# through the entire .csv file
-previous_row_num = {
-    "141322252882" : 0,
-    "138322250306" : 0
-    # "138322252073" : 0
-}
-# Total number of frames captured
-total_frames = 568
-# Frame numbers that meet the threshold
-frame_set = []
-# Threshold of maximum difference between timestamps
-threshold = 5 #ms
-# Store the current timestamps
-rgb_timestamps = []
-depth_timestamps = []
-for i in range(len(serial_numbers)):
-    rgb_timestamps.append(0)
-    depth_timestamps.append(0)
-# Indicate which timestamp to use for synchronisation
-use_rgb_stamp = False
 if __name__ == "__main__":
     # Store the serial numbers of the cameras used
-    serial_numbers = ["138322250306", "138322252073", "141322252627", "141322252882"]
+    serial_numbers = ["138322250306", "141322252882"]
     # Store the previous row number for each serial number. This prevents the algorithm from searching
     # through the entire .csv file
     previous_row_num = {
-        "141322252882" : 0,
         "138322250306" : 0,
-        "138322252073" : 0,
-        "141322252627" : 0
+        "141322252882" : 0
     }
     
     # Frames starting number
     search_begin_frame_num = 50
     
     # Total number of frames captured
-    total_frames = 290
+    total_frames = 287
     
     # Frame numbers that meet the threshold
     frame_sets = []
     
     # Threshold of maximum difference between timestamps
-    threshold = 90 #ms
+    threshold = 60 #ms
     
     # Store the current timestamps
     cam1_timestamp = 0
