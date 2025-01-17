@@ -9,7 +9,6 @@ config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 5)
 config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 5)
 pipeline.start(config)
 
-profile = pipeline.start(config)
 
 # Create an align object to align depth to color for each pipeline
 align = rs.align(rs.stream.color)
