@@ -39,11 +39,11 @@ while True:
     depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
     
     # Save RGB image
-    rgb_filename = f"rgb_images/rgb_frame_{frame_number}.png"
+    rgb_filename = f"rgb_frame_{frame_number}.png"
     cv2.imwrite(rgb_filename, color_image)
     
     # Save depth image
-    depth_filename = f"depth_images/depth_frame_{frame_number}.png"
+    depth_filename = f"depth_frame_{frame_number}.png"
     cv2.imwrite(depth_filename, depth_image)
     
     frame_number += 1
