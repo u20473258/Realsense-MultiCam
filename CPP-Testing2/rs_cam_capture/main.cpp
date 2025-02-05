@@ -36,9 +36,9 @@ void metadata_to_csv(const rs2::frame& frm, const std::string& filename)
 }
 
 void save_frame_depth_data(const std::string& filename,
-                           rs2::frame frame,
-                           float depth_units)
+                           rs2::frame frame)
 {
+    rs2::depth_frame depth = frame.as<rs2::depth_frame>();
     if (auto image = frame.as<rs2::video_frame>())
     {
         std::ofstream myfile;
@@ -46,13 +46,12 @@ void save_frame_depth_data(const std::string& filename,
         fullname << filename << "_" << frame.get_frame_number() << ".csv";
         myfile.open(fullname.str());
         myfile << std::setprecision(2);
-        auto pixels = (uint16_t*)image.get_data();
 
         for (auto y = 0; y < image.get_height(); y++)
         {
             for (auto x = 0; x < image.get_width(); x++)
             {
-                myfile << pixels[image.get_width() * y + x] * depth_units << ", ";
+                myfile << depth.get_distance(x, y) << ", ";
             }
             myfile << "\n";
         }
@@ -97,9 +96,6 @@ int main(int argc, char * argv[]) try
 {
     rs2::colorizer color_map;
 
-    auto depth_units = rs2::context().query_devices().front()
-        .query_sensors().front().get_option(RS2_OPTION_DEPTH_UNITS);
-
     rs2::pipeline pipe;
     pipe.start();
 
@@ -110,10 +106,10 @@ int main(int argc, char * argv[]) try
     {
         rs2::frameset data = pipe.wait_for_frames(); // Wait for next set of frames from the camera
 
-        rs2::frame depth = data.get_depth_frame(); // Find and colorize the depth data
-        rs2::frame color = data.get_color_frame();            // Find the color data
+        rs2::frame depth = data.get_depth_frame(); // Find the depth data
+        rs2::frame color = data.get_color_frame(); // Find the color data
 
-        save_frame_depth_data("depth", depth, depth_units);
+        save_frame_depth_data("depth", depth);
         save_frame_color_data("color", color);
     }
 
