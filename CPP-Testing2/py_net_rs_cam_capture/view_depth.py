@@ -3,7 +3,7 @@ import numpy as np
 import csv
 
 # Depth image relative path
-relative_path = "net_rs_cam_capture/build/Depth_Images/depth_"
+relative_path = "/home/orin/Desktop/Realsense-MultiCam/CPP-Testing2/net_rs_cam_capture/build/Depth_Images/depth_"
 # Depth image to store
 depth_image_number = 1001
 # Depth image relative file path
@@ -20,16 +20,18 @@ with open(depth_image_path, newline='') as csvfile:
     for row in spamreader:
         j = 0
         for depth in row:
-            depth_image[i,j] = depth
-            j += 1
+            if j != 640:
+                depth_image[i,j] = float(depth)
+                j += 1
         i += 1
 
 # Apply a colour map to the depth image
-depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
+print(type(depth_colormap))
 # Show depth colour map
-cv2.imshow(f"Depth Stream - Camera {depth_colormap}", depth_image)
+cv2.imshow(f"Depth Image", depth_colormap)
 # Save depth image
-# depth_filename = f"depth_images/depth_frame_{frame_number}_cam{serial_number}.png"
-# cv2.imwrite(depth_filename, depth_image)
+depth_filename = f"depth_image_{depth_image_number}.png"
+cv2.imwrite(depth_filename, depth_colormap)
 
 
