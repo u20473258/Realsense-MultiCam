@@ -30,3 +30,5 @@ CPP-Testing2/net_rs_cam_capture/build
 CPP-Testing2/build
 CPP-Testing2/rs_cam_capture/build
 CPP-Testing2/.vscode
+CPP-Testing2/rs_cam_capture/.idea
+CPP-Testing2/rs_cam_capture/cmake-build-debug
