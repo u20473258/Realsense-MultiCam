@@ -98,12 +98,16 @@ void save_frame_color_data(const std::string& filename,
 int main(int argc, char * argv[]) try
 {
 
-    rs2::net_device dev("10.0.0.99");
-    rs2::context ctx;
-    dev.add_to(ctx);
-
+    rs2::net_device dev("192.168.249.150");
+    rs2::context ctx; dev.add_to(ctx);
     rs2::pipeline pipe(ctx);
-    pipe.start();
+    rs2::config cfg;
+    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+    cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8 , 30);
+    auto profile = pipe.start(cfg);
+    std::cout << "started";
+
+    
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();
