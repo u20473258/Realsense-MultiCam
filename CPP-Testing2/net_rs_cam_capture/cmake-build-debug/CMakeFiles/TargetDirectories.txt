@@ -1,0 +1,3 @@
+/home/baraka/Desktop/Realsense-MultiCam/CPP-Testing2/net_rs_cam_capture/cmake-build-debug/CMakeFiles/net_rs_cam_capture.dir
+/home/baraka/Desktop/Realsense-MultiCam/CPP-Testing2/net_rs_cam_capture/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/baraka/Desktop/Realsense-MultiCam/CPP-Testing2/net_rs_cam_capture/cmake-build-debug/CMakeFiles/rebuild_cache.dir
