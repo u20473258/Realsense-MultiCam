@@ -40,7 +40,7 @@ find_package( OpenCV REQUIRED )
 # getting-started
 add_executable(net_rs_cam_capture main.cpp)
 include_directories(net_rs_cam_capture ${ADDITIONAL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(net_rs_cam_capture ${REALSENSE2_FOUND} ${OpenCV_LIBS})
+target_link_libraries(net_rs_cam_capture realsense2-net ${REALSENSE2_FOUND} ${OpenCV_LIBS})
 set_target_properties (net_rs_cam_capture PROPERTIES FOLDER Examples)
 
 # Post Build script to copy realsense2.dll

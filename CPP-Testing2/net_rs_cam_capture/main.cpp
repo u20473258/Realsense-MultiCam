@@ -2,6 +2,7 @@
 // Copyright(c) 2017 Intel Corporation. All Rights Reserved.
 
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include <librealsense2-net/rs_net.hpp>
 
 // 3rd party header for writing png files
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -96,9 +97,12 @@ void save_frame_color_data(const std::string& filename,
 // capture depth and color video streams and render them to the screen
 int main(int argc, char * argv[]) try
 {
-    rs2::colorizer color_map;
 
-    rs2::pipeline pipe;
+    rs2::net_device dev("10.0.0.99");
+    rs2::context ctx;
+    dev.add_to(ctx);
+
+    rs2::pipeline pipe(ctx);
     pipe.start();
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
