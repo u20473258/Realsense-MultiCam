@@ -14,6 +14,7 @@ def create_directories(num_camera):
         os.makedirs(f"camera_{i}", exist_ok=True)
         os.makedirs(f"camera_{i}/colour", exist_ok=True)
         os.makedirs(f"camera_{i}/depth", exist_ok=True)
+        os.makedirs(f"camera_{i}/depth_colourised", exist_ok=True)
         os.makedirs(f"camera_{i}/colour_metadata", exist_ok=True)
         os.makedirs(f"camera_{i}/depth_metadata", exist_ok=True)
 
