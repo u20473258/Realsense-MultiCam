@@ -18,7 +18,7 @@ def create_directories(serial):
 
 
 if __name__ == "__main__":
-    serial_numbers = [138322250306]
+    serial_numbers = "138322250306"
     
     delete_directories(serial_numbers)
     create_directories(serial_numbers)
