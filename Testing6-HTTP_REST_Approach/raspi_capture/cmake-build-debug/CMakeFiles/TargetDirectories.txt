@@ -1,0 +1,3 @@
+/home/baraka/Desktop/Realsense-MultiCam/Testing6-HTTP_REST_Approach/raspi_capture/cmake-build-debug/CMakeFiles/raspi_capture.dir
+/home/baraka/Desktop/Realsense-MultiCam/Testing6-HTTP_REST_Approach/raspi_capture/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/baraka/Desktop/Realsense-MultiCam/Testing6-HTTP_REST_Approach/raspi_capture/cmake-build-debug/CMakeFiles/rebuild_cache.dir
