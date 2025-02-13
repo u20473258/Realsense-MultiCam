@@ -34,14 +34,14 @@ void metadata_to_csv(const rs2::frame& frm, const std::string& filename)
     csv.close();
 }
 
-void save_frame_depth_data(const std::string& serial_number, rs2::frame frame)
+void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
 {
     rs2::depth_frame depth = frame.as<rs2::depth_frame>();
     if (auto image = frame.as<rs2::video_frame>())
     {
         std::ofstream myfile;
         std::stringstream filename;
-        filename << "camera_" << serial_number << "/depth/" << frame.get_frame_number() << ".csv";
+        filename << pi_name << "/depth/" << frame.get_frame_number() << ".csv";
         myfile.open(filename.str());
         myfile << std::setprecision(2);
 
@@ -58,26 +58,26 @@ void save_frame_depth_data(const std::string& serial_number, rs2::frame frame)
 
         // Record per-frame metadata for UVC streams
         std::stringstream csv_file;
-        csv_file << "camera_" << serial_number << "/depth_metadata/" << frame.get_frame_number() << ".csv";
+        csv_file << pi_name << "/depth_metadata/" << frame.get_frame_number() << ".csv";
         metadata_to_csv(image, csv_file.str());
     }
 }
 
-void save_frame_color_data(const std::string& serial_number, rs2::frame frame)
+void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
 {
     // We can only save video frames as pngs, so we skip the rest
     if (auto image = frame.as<rs2::video_frame>())
     {
         // Write images to disk
         std::stringstream png_file;
-        png_file << "camera_" << serial_number << "/colour/" << frame.get_frame_number() << ".png";
+        png_file << pi_name << "/colour/" << frame.get_frame_number() << ".png";
         stbi_write_png(png_file.str().c_str(), image.get_width(), image.get_height(),
                        image.get_bytes_per_pixel(), image.get_data(), image.get_stride_in_bytes());
         std::cout << "Saved " << png_file.str() << std::endl;
 
         // Record per-frame metadata for UVC streams
         std::stringstream csv_file;
-        csv_file << "camera_" << serial_number << "/colour_metadata/" << frame.get_frame_number() << ".csv";
+        csv_file << pi_name << "/colour_metadata/" << frame.get_frame_number() << ".csv";
         metadata_to_csv(image, csv_file.str());
     }
 
@@ -96,9 +96,7 @@ int main(int argc, char * argv[]) try
     rs2::context ctx;
 
     // Get the serial number of the connected device. There should only be one connected
-    std::string serial_number;
-    for (auto&& dev : ctx.query_devices())
-        serial_number = dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
+    std::string raspi_name = "raspi";
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();
@@ -110,8 +108,8 @@ int main(int argc, char * argv[]) try
         rs2::frame depth = data.get_depth_frame(); // Find the depth data
         rs2::frame color = data.get_color_frame(); // Find the color data
 
-        save_frame_depth_data(serial_number, depth);
-        save_frame_color_data(serial_number, color);
+        save_frame_depth_data(raspi_name, depth);
+        save_frame_color_data(raspi_name, color);
     }
 
     return EXIT_SUCCESS;

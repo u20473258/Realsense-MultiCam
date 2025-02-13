@@ -3,22 +3,22 @@ import shutil
 import sys
 
 # Deletes all the camera data directories
-def delete_directories(serial):
-    if os.path.exists(f"camera_{serial}"):
-        shutil.rmtree(f"camera_{serial}")
+def delete_directories(pi):
+    if os.path.exists(f"camera_{pi}"):
+        shutil.rmtree(f"camera_{pi}")
 
 # Creates new directories for the camera data       
-def create_directories(serial):
-    os.makedirs(f"camera_{serial}", exist_ok=True)
-    os.makedirs(f"camera_{serial}/colour", exist_ok=True)
-    os.makedirs(f"camera_{serial}/depth", exist_ok=True)
-    os.makedirs(f"camera_{serial}/depth_colourised", exist_ok=True)
-    os.makedirs(f"camera_{serial}/colour_metadata", exist_ok=True)
-    os.makedirs(f"camera_{serial}/depth_metadata", exist_ok=True)
+def create_directories(pi):
+    os.makedirs(f"{pi}", exist_ok=True)
+    os.makedirs(f"{pi}/colour", exist_ok=True)
+    os.makedirs(f"{pi}/depth", exist_ok=True)
+    os.makedirs(f"{pi}/depth_colourised", exist_ok=True)
+    os.makedirs(f"{pi}/colour_metadata", exist_ok=True)
+    os.makedirs(f"{pi}/depth_metadata", exist_ok=True)
 
 
 if __name__ == "__main__":
-    serial_numbers = "138322250306"
+    pi_name = "raspi1"
     
-    delete_directories(serial_numbers)
-    create_directories(serial_numbers)
+    delete_directories(pi_name)
+    create_directories(pi_name)
