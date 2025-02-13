@@ -12,7 +12,7 @@ frame_number = 100
 # List of files to send
 files_to_send = [
     f"{pi_name}/colour/{frame_number}.png",
-    f"{pi_name}/depth/{frame_number}.bin",
+    f"{pi_name}/depth/{frame_number}.csv",
     f"{pi_name}/colour_metadata/{frame_number}.csv",
     f"{pi_name}/depth_metadata/{frame_number}.csv"
 ]
