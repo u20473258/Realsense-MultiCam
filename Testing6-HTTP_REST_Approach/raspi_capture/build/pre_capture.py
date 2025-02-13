@@ -12,7 +12,6 @@ def create_directories(pi):
     os.makedirs(f"{pi}", exist_ok=True)
     os.makedirs(f"{pi}/colour", exist_ok=True)
     os.makedirs(f"{pi}/depth", exist_ok=True)
-    os.makedirs(f"{pi}/depth_colourised", exist_ok=True)
     os.makedirs(f"{pi}/colour_metadata", exist_ok=True)
     os.makedirs(f"{pi}/depth_metadata", exist_ok=True)
 
