@@ -41,7 +41,7 @@ void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
     {
         std::ofstream myfile;
         std::stringstream filename;
-        filename << pi_name << "/depth/" << frame.get_frame_number() << ".csv";
+        filename << pi_name << "/depth/" << pi_name << "_depth_" << frame.get_frame_number() << ".csv";
         myfile.open(filename.str());
         myfile << std::setprecision(2);
 
@@ -58,7 +58,7 @@ void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
 
         // Record per-frame metadata for UVC streams
         std::stringstream csv_file;
-        csv_file << pi_name << "/depth_metadata/" << frame.get_frame_number() << ".csv";
+        csv_file << pi_name << "/depth_metadata/" << pi_name << "_depth_metadata_" << frame.get_frame_number() << ".csv";
         metadata_to_csv(image, csv_file.str());
     }
 }
@@ -70,14 +70,14 @@ void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
     {
         // Write images to disk
         std::stringstream png_file;
-        png_file << pi_name << "/colour/" << frame.get_frame_number() << ".png";
+        png_file << pi_name << "/colour/" << pi_name << "_colour_" << frame.get_frame_number() << ".png";
         stbi_write_png(png_file.str().c_str(), image.get_width(), image.get_height(),
                        image.get_bytes_per_pixel(), image.get_data(), image.get_stride_in_bytes());
         std::cout << "Saved " << png_file.str() << std::endl;
 
         // Record per-frame metadata for UVC streams
         std::stringstream csv_file;
-        csv_file << pi_name << "/colour_metadata/" << frame.get_frame_number() << ".csv";
+        csv_file << pi_name << "/colour_metadata/" << pi_name << "_colour_metadata_" << frame.get_frame_number() << ".csv";
         metadata_to_csv(image, csv_file.str());
     }
 
