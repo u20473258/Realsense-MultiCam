@@ -7,14 +7,15 @@ url = "192.168.249.145"
 pi_name = "raspi1"
 
 # Store the frame number to send to orin nano
-frame_number = 100
+colour_frame_number = 100
+depth_frame_number = 100
 
 # List of files to send
 files_to_send = [
-    f"{pi_name}/colour/{frame_number}.png",
-    f"{pi_name}/depth/{frame_number}.csv",
-    f"{pi_name}/colour_metadata/{frame_number}.csv",
-    f"{pi_name}/depth_metadata/{frame_number}.csv"
+    f"{pi_name}/colour/{colour_frame_number}.png",
+    f"{pi_name}/depth/{depth_frame_number}.csv",
+    f"{pi_name}/colour_metadata/{colour_frame_number}.csv",
+    f"{pi_name}/depth_metadata/{depth_frame_number}.csv"
 ]
 
 for file_path in files_to_send:
