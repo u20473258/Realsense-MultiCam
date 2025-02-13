@@ -36,11 +36,10 @@ if(NOT REALSENSE2_FOUND)
     SET(REALSENSE2_FOUND "realsense2")
     message(WARN "Failed to find_library(realsense2)")
 endif()
-find_package( OpenCV REQUIRED )
 # getting-started
 add_executable(raspi_capture main.cpp)
-include_directories(raspi_capture ${ADDITIONAL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(raspi_capture ${REALSENSE2_FOUND} ${OpenCV_LIBS})
+include_directories(raspi_capture ${ADDITIONAL_INCLUDE_DIRS})
+target_link_libraries(raspi_capture ${REALSENSE2_FOUND})
 set_target_properties (raspi_capture PROPERTIES FOLDER Examples)
 
 # Post Build script to copy realsense2.dll
