@@ -12,10 +12,10 @@ depth_frame_number = 100
 
 # List of files to send
 files_to_send = [
-    f"{pi_name}/colour/{colour_frame_number}.png",
-    f"{pi_name}/depth/{depth_frame_number}.csv",
-    f"{pi_name}/colour_metadata/{colour_frame_number}.csv",
-    f"{pi_name}/depth_metadata/{depth_frame_number}.csv"
+    f"{pi_name}/colour/{pi_name}_colour_{colour_frame_number}.png",
+    f"{pi_name}/depth/{pi_name}_depth_{depth_frame_number}.csv",
+    f"{pi_name}/colour_metadata/{pi_name}_colour_metadata_{colour_frame_number}.csv",
+    f"{pi_name}/depth_metadata/{pi_name}_depth_metadata_{depth_frame_number}.csv"
 ]
 
 for file_path in files_to_send:
