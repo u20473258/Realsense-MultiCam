@@ -40,25 +40,18 @@ def upload_file():
     
     return jsonify({"message": f"File {file.filename} saved at {file_path}"})
 
-def shutdown_server():
-    """Shut down the server gracefully."""
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError("Not running with the Werkzeug Server")
-    func()
-
-def run_timer(duration):
-    """Run a timer for a specified duration (in seconds)."""
+def shutdown_after_duration(duration):
+    """Run a timer and then shut down the server after the given duration."""
+    print(f"[INFO] Server will run for {duration} seconds.")
     time.sleep(duration)
-    print(f"\n[INFO] {duration} seconds elapsed. Shutting down the server.")
-    shutdown_server()
+    print("\n[INFO] Time's up! Shutting down the server...")
+    os._exit(0)  # Forcefully exits the process
 
 # Run capture script for 30s    
 def receive_data():
-    duration = 30  # Duration in seconds (e.g., 5 minutes = 300 seconds)
-    timer_thread = threading.Thread(target=run_timer, args=(duration,))
+    duration = 60  # Duration in seconds (e.g., 5 minutes = 300 seconds)
+    timer_thread = threading.Thread(target=shutdown_after_duration, args=(duration,))
     timer_thread.start()
-    print(f"[INFO] Server will run for {duration} seconds.")
     app.run(host='0.0.0.0', port=5000)
 
 
