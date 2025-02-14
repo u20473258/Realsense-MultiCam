@@ -53,7 +53,8 @@ def wait_for_capture():
 
     print(f"Listening for broadcast messages on port {PORT}...")
     
-    while True:
+    command_not_received = True
+    while command_not_received:
         data, addr = sock.recvfrom(BUFFER_SIZE)
         message = data.decode().strip()
         print(f"Received message: {message} from {addr}")
@@ -61,8 +62,10 @@ def wait_for_capture():
         # Command handling
         if message == "CAPTURE_30":
             capture_30()
+            command_not_received = False
         elif message == "REBOOT":
             reboot_system()
+            command_not_received = False
         else:
             print(f"Unknown command: {message}")
 
