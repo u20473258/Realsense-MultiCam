@@ -39,8 +39,8 @@ endif()
 find_package( OpenCV REQUIRED )
 # getting-started
 add_executable(capture main.cpp)
-include_directories(capture ${ADDITIONAL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(capture realsense2-net ${REALSENSE2_FOUND} ${OpenCV_LIBS})
+include_directories(capture ${ADDITIONAL_INCLUDE_DIRS})
+target_link_libraries(capture ${REALSENSE2_FOUND})
 set_target_properties (capture PROPERTIES FOLDER Examples)
 
 # Post Build script to copy realsense2.dll
