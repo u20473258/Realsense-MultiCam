@@ -133,7 +133,10 @@ if __name__ == "__main__":
     raspberrys = ["raspi1", "raspi2"]
     
     # Store the image set file numbers selected for each raspberry pi
-    rp_image_sets = [55, 60]
+    rp_image_sets = []
+    for i in raspberrys:
+        frame_number = input("What depth frame number should be used for " + i)
+        rp_image_sets.append(int(frame_number))
     
     while(True):
         wait_for_capture()

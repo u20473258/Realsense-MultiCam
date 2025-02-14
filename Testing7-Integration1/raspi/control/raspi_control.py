@@ -74,8 +74,8 @@ def transfer_files(pi):
     url = "http://192.168.249.168:5000/uploads"
 
     # Store the frame number to send to orin nano
-    colour_frame_number = 100
-    depth_frame_number = 100
+    colour_frame_number = int(input("What colour frame should be used?"))
+    depth_frame_number = int(input("What depth frame number should be used?"))
 
     # List of files to send
     files_to_send = [
