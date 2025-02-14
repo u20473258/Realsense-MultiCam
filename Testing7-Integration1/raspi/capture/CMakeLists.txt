@@ -36,7 +36,6 @@ if(NOT REALSENSE2_FOUND)
     SET(REALSENSE2_FOUND "realsense2")
     message(WARN "Failed to find_library(realsense2)")
 endif()
-find_package( OpenCV REQUIRED )
 # getting-started
 add_executable(capture main.cpp)
 include_directories(capture ${ADDITIONAL_INCLUDE_DIRS})
