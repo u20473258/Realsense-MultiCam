@@ -8,20 +8,8 @@ import numpy as np
 import csv
 import cv2
 
-           
-BROADCAST_IP = "255.255.255.255"  # Broadcast address to send to all devices in the subnet
-PORT = 5005                       # Port to broadcast on
-
-# Create a UDP socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-app = Flask(__name__)
-UPLOAD_FOLDER = './uploads'
-# Checkes if directories exist
-if os.path.exists(f"colour"):
-    shutil.rmtree(UPLOAD_FOLDER)
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the uploads folder if it doesn't exist
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app = Flask(__name__)      
+     
 
 ################### CAPTURE AND TRANSFER STATE ###################### 
 
@@ -59,6 +47,19 @@ def receive_data():
 
 # Wait for user to start program and then broadcast to raspberry pis
 def wait_for_capture():
+    BROADCAST_IP = "255.255.255.255"  # Broadcast address to send to all devices in the subnet
+    PORT = 5005                       # Port to broadcast on
+
+    # Create a UDP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    UPLOAD_FOLDER = './uploads'
+    # Checkes if directories exist
+    if os.path.exists(f"colour"):
+        shutil.rmtree(UPLOAD_FOLDER)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the uploads folder if it doesn't exist
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
     commands = ["CAPTURE_30", "REBOOT"]  # Different command types
