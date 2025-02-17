@@ -121,8 +121,6 @@ def convert_csv_to_depth(raspis):
 
         # Apply a colour map to the depth image
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
-        # Show depth colour map
-        cv2.imshow(f"Depth Image", depth_colormap)
         # Save depth image
         depth_filename = relative_path + raspis[x] + "_depth_image_" + str(image_sets[x]) + ".png"
         cv2.imwrite(depth_filename, depth_colormap)
