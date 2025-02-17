@@ -87,8 +87,12 @@ void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
 // capture depth and color video streams and render them to the screen
 int main(int argc, char * argv[]) try
 {
+    rs2::config cfg;
+    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 15);
+    cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 15);
+
     rs2::pipeline pipe;
-    pipe.start();
+    pipe.start(cfg);
 
     std::string raspi_name = "raspi1";
 
