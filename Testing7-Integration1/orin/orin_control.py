@@ -37,7 +37,7 @@ def shutdown_after_duration(duration):
 
 # Run capture script for 30s    
 def receive_data():
-    duration = 60  # Duration in seconds (e.g., 5 minutes = 300 seconds)
+    duration = 100  # Duration in seconds (e.g., 5 minutes = 300 seconds)
     timer_thread = threading.Thread(target=shutdown_after_duration, args=(duration,))
     timer_thread.start()
     app.run(host='0.0.0.0', port=5000)
