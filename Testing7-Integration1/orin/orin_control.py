@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 ################### CAPTURE AND TRANSFER STATE ###################### 
 
-@app.route('/upload', methods=['POST'])
+@app.route('/uploads', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"})
