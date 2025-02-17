@@ -28,7 +28,7 @@ def create_directories():
 # Run capture script for 30s    
 def capture_30():
     try:
-        subprocess.run(["capture"], check=True)
+        subprocess.run(["./capture"], check=True)
         print("Capture complete successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error executing Python script: {e}")
