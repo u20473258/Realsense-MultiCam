@@ -127,7 +127,7 @@ def convert_csv_to_depth(raspis):
 
 if __name__ == "__main__":
     
-    raspberrys = ["raspi1"]
+    raspberrys = ["raspi1", "raspi2"]
     
     while(True):
         wait_for_capture()
