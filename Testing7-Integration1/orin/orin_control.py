@@ -54,7 +54,7 @@ def receive_data():
 
 # Wait for user to start program and then broadcast to raspberry pis
 def wait_for_capture():
-    BROADCAST_IP = "255.255.255.255"  # Broadcast address to send to all devices in the subnet
+    BROADCAST_IP = "192.168.249.255"  # Broadcast address to send to all devices in the subnet
     PORT = 5005                       # Port to broadcast on
 
     # Create a UDP socket
