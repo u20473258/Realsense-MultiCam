@@ -95,7 +95,7 @@ def transfer_files(pi):
             response = requests.post(url, files=files)
             
             # Print the server's response
-            print(f"Response for {file_name}: {response.json()}")
+            print(f"Response for {file_name}: {response}")
 
 
 if __name__ == "__main__":
