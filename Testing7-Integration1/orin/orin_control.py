@@ -44,9 +44,9 @@ def receive_data():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the uploads folder if it doesn't exist
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
-    duration = 100  # Duration in seconds (e.g., 5 minutes = 300 seconds)
-    timer_thread = threading.Thread(target=shutdown_after_duration, args=(duration,))
-    timer_thread.start()
+    # duration = 100  # Duration in seconds (e.g., 5 minutes = 300 seconds)
+    # timer_thread = threading.Thread(target=shutdown_after_duration, args=(duration,))
+    # timer_thread.start()
     app.run(host='0.0.0.0', port=5000)
 
 
