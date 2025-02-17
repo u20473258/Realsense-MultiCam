@@ -95,7 +95,7 @@ def convert_csv_to_depth(raspis):
         image_sets.append(int(frame_number))
     
     # Depth image relative path
-    relative_path = "/uploads/"
+    relative_path = "Testing7-Integration1/orin/uploads/"
     
     # Store depth image dimensions/resolution
     depth_image_width = 640
