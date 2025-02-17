@@ -37,6 +37,13 @@ def shutdown_after_duration(duration):
 
 # Run capture script for 30s    
 def receive_data():
+    UPLOAD_FOLDER = './uploads'
+    # Checkes if directories exist
+    if os.path.exists(f"uploads"):
+        shutil.rmtree(UPLOAD_FOLDER)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the uploads folder if it doesn't exist
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    
     duration = 100  # Duration in seconds (e.g., 5 minutes = 300 seconds)
     timer_thread = threading.Thread(target=shutdown_after_duration, args=(duration,))
     timer_thread.start()
@@ -52,13 +59,6 @@ def wait_for_capture():
 
     # Create a UDP socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    UPLOAD_FOLDER = './uploads'
-    # Checkes if directories exist
-    if os.path.exists(f"colour"):
-        shutil.rmtree(UPLOAD_FOLDER)
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create the uploads folder if it doesn't exist
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
@@ -129,7 +129,7 @@ def convert_csv_to_depth(raspis):
 
 if __name__ == "__main__":
     
-    raspberrys = ["raspi1", "raspi2"]
+    raspberrys = ["raspi1"]
     
     while(True):
         wait_for_capture()
