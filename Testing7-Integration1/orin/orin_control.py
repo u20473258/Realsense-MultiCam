@@ -95,15 +95,15 @@ def convert_csv_to_depth(raspis):
         image_sets.append(int(frame_number))
     
     # Depth image relative path
-    relative_path = "Testing7-Integration1/orin/uploads/"
+    relative_path = "uploads/"
     
     # Store depth image dimensions/resolution
     depth_image_width = 640
     depth_image_height = 480
     
     # For each raspberry pi
-    for i in range(len(raspis)):
-        depth_image_path = relative_path + raspis[i] + "_depth_" + str(image_sets[i]) + ".csv"
+    for x in range(len(raspis)):
+        depth_image_path = relative_path + raspis[x] + "_depth_" + str(image_sets[x]) + ".csv"
         
         # Create the numpy array depth image
         depth_image = np.empty((depth_image_height, depth_image_width), dtype=float)  
@@ -124,7 +124,7 @@ def convert_csv_to_depth(raspis):
         # Show depth colour map
         cv2.imshow(f"Depth Image", depth_colormap)
         # Save depth image
-        depth_filename = relative_path + raspis[i] + "_depth_image_" + str(image_sets[i]) + ".png"
+        depth_filename = relative_path + raspis[x] + "_depth_image_" + str(image_sets[x]) + ".png"
         cv2.imwrite(depth_filename, depth_colormap)
 
 if __name__ == "__main__":
