@@ -87,15 +87,9 @@ void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
 // capture depth and color video streams and render them to the screen
 int main(int argc, char * argv[]) try
 {
-    rs2::colorizer color_map;
-
     rs2::pipeline pipe;
     pipe.start();
 
-    // Create librealsense context for managing devices
-    rs2::context ctx;
-
-    // Get the serial number of the connected device. There should only be one connected
     std::string raspi_name = "raspi1";
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
