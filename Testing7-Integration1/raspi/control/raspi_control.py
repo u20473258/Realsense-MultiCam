@@ -74,7 +74,7 @@ def wait_for_capture():
 # Transfer an image set to Jetson Orin Nano
 def transfer_files(pi):
     # Jetson Orin Nano's IP address
-    url = "http://192.168.249.168:5000/uploads"
+    url = "http://192.168.249.145:5000/uploads"
 
     # Store the frame number to send to orin nano
     colour_frame_number = int(input("What colour frame should be used?"))
