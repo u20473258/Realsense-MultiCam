@@ -1,0 +1,3 @@
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/Raspi/Capture/cmake-build-debug/CMakeFiles/Capture.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/Raspi/Capture/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/Raspi/Capture/cmake-build-debug/CMakeFiles/rebuild_cache.dir
