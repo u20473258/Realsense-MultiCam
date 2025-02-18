@@ -25,10 +25,10 @@ def create_directories():
 
 ################### CAPTURE STATE ###################### 
 
-# Run capture script for 30s    
+# Run capture script for 30 frames    
 def capture_30():
     try:
-        subprocess.run(["./capture"], check=True)
+        subprocess.run(["./capture 30"], check=True)
         print("Capture complete successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error executing Python script: {e}")
