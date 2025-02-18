@@ -3,9 +3,11 @@ import shutil
 import socket
 import subprocess
 import requests
-           
-# Prepare directories for camera data storage
-def create_directories():
+                          
+
+""" Deletes previously captured data, if any, and creates new file directories for 
+the new data """
+def create_file_directories():
     # Checkes if directories exist
     if os.path.exists(f"colour"):
         shutil.rmtree(f"colour")
@@ -21,58 +23,120 @@ def create_directories():
     os.makedirs(f"depth", exist_ok=True)
     os.makedirs(f"colour_metadata", exist_ok=True)
     os.makedirs(f"depth_metadata", exist_ok=True)
+    
 
-
-################### CAPTURE STATE ###################### 
-
-# Run capture script for 30 frames    
-def capture_30():
+""" Capture num_frames frames using capture script """
+def capture(num_frames):
+    frame_options = {"15" : "1",
+                     "30" : "2",
+                     "75" : "5",
+                     "150" : "10",
+                     "225" : "15",
+                     "300" : "20",
+                     "375" : "25",
+                     "450" : "30",
+                     "900" : "60",
+                     "1500" : "100"}
+    
     try:
-        subprocess.run(["./capture 30"], check=True)
-        print("Capture complete successfully.")
+        capture_command = "./capture " + num_frames
+        subprocess.run(["./capture "], check=True)
+        print("Capture " + num_frames + " frames (" + frame_options[num_frames] + "s) complete successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error executing Python script: {e}")
 
 
-################### WAIT STATE ######################   
-# Reboot raspberry pi     
+""" Reboot raspberry pi """   
 def reboot_system():
     try:
+        print("Rebooting system...")
         subprocess.run(["sudo", "reboot"], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error rebooting system: {e}")
-
-# Create UDP socket and listen on that socket
-def wait_for_capture():
-    PORT = 5005                      # Port to listen on
-    BUFFER_SIZE = 1024               # Max size for incoming messages
+     
+        
+""" Waits for message from Jetson Orin Nano and then executes the commend sent """
+def wait_for_command_from_orin():
+    # Port to listen on
+    PORT = 5005
+    
+    # Max size for incoming messages
+    BUFFER_SIZE = 1024
 
     # Create a UDP socket for listening
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(("", PORT))  # Bind to all interfaces
+    
+    # Bind to all interfaces
+    sock.bind(("", PORT))
 
     print(f"Listening for broadcast messages on port {PORT}...")
     
+    # Wait until command is received
     command_not_received = True
-    while command_not_received:
-        data, addr = sock.recvfrom(BUFFER_SIZE)
-        message = data.decode().strip()
-        print(f"Received message: {message} from {addr}")
-        
-        # Command handling
-        if message == "CAPTURE_30":
-            capture_30()
-            command_not_received = False
-        elif message == "REBOOT":
-            reboot_system()
-            command_not_received = False
-        else:
-            print(f"Unknown command: {message}")
+    try:
+        while command_not_received:
+            data, addr = sock.recvfrom(BUFFER_SIZE)
+            message = data.decode().strip()
+            print(f"Received message: {message} from {addr}")
+            
+            # Command handling
+            if message == "CAPTURE_1s":
+                capture("15")
+                command_not_received = False
+                
+            elif message == "CAPTURE_2s":
+                capture("30")
+                command_not_received = False
+                
+            elif message == "CAPTURE_5s":
+                capture("75")
+                command_not_received = False
+                
+            elif message == "CAPTURE_10s":
+                capture("150")
+                command_not_received = False
+                
+            elif message == "CAPTURE_15s":
+                capture("225")
+                command_not_received = False
+                
+            elif message == "CAPTURE_20s":
+                capture("300")
+                command_not_received = False
+                
+            elif message == "CAPTURE_25s":
+                capture("375")
+                command_not_received = False
+                
+            elif message == "CAPTURE_30s":
+                capture("450")
+                command_not_received = False
+                
+            elif message == "CAPTURE_60s":
+                capture("900")
+                command_not_received = False
+                
+            elif message == "CAPTURE_100s":
+                capture("1500")
+                command_not_received = False
+                
+            elif message == "REBOOT":
+                reboot_system()
+                command_not_received = False
+                
+            else:
+                print(f"Unknown command: {message}")
+            
+    except KeyboardInterrupt:
+        print("UDP Listener interrupted. Closing socket...")
+
+    finally:
+        sock.close()
+        print("Socket closed.")
 
 
-################### TRANSFER STATE ######################
-# Transfer an image set to Jetson Orin Nano
-def transfer_files(pi):
+""" Use HTTP REST API POST command to send all captured data to Jetson Orin Nano """
+def send_files_to_orin(pi):
     # Jetson Orin Nano's IP address
     url = "http://192.168.249.145:5000/uploads"
 
@@ -80,29 +144,33 @@ def transfer_files(pi):
     colour_frame_number = int(input("What colour frame should be used?"))
     depth_frame_number = int(input("What depth frame number should be used?"))
 
-    # List of files to send
-    files_to_send = [
-        f"colour/{pi}_colour_{colour_frame_number}.png",
-        f"depth/{pi}_depth_{depth_frame_number}.csv",
-        f"colour_metadata/{pi}_colour_metadata_{colour_frame_number}.csv",
-        f"depth_metadata/{pi}_depth_metadata_{depth_frame_number}.csv"
+    # List of file paths to send
+    folder_paths_to_Send = [
+        f"colour",
+        f"depth",
+        f"colour_metadata",
+        f"depth_metadata"
     ]
 
-    for file_path in files_to_send:
-        with open(file_path, 'rb') as f:
-            file_name = file_path.split("/")[-1]  # Get the file name from the path
-            files = {'file': (file_name, f)}  # Send the file with its original name
-            response = requests.post(url, files=files)
+    for folder_path in folder_paths_to_Send:
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
             
-            # Print the server's response
-            print(f"Response for {file_name}: {response}")
-
+            # Ensure it's a file
+            if os.path.isfile(file_path):
+                with open(file_path, "rb") as file:
+                    # Send the file with its original name
+                    files = {"file": (filename, file)}
+                    response = requests.post(url, files=files)
+                    
+                    # Print response
+                    print(f"Uploaded {filename}: {response.status_code} - {response.text}")
+                    
 
 if __name__ == "__main__":
     pi_name = "raspi1"
     
     while(True):
-        create_directories()
-        wait_for_capture()
-        transfer_files(pi_name)
-
+        create_file_directories()
+        wait_for_command_from_orin()
+        send_files_to_orin(pi_name)
