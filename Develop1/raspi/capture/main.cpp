@@ -119,19 +119,27 @@ int main(int argc, char * argv[]) try
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();
 
+    // Create a vector to store the frames for further processing
+    std::vector<rs2::frame> depth_frames;
+    std::vector<rs2::frame> color_frames;
+
     // Capture num_frames frames
     for (auto i = 0; i < num_frames; ++i)
     {
         // Wait for next set of frames
         rs2::frameset data = pipe.wait_for_frames();
 
-        // Get depth and colour frame
-        rs2::frame depth = data.get_depth_frame();
-        rs2::frame color = data.get_color_frame();
+        // Store frames
+        depth_frames.push_back(data.get_depth_frame());
+        color_frames.push_back(data.get_color_frame());
+    }
 
+    // Store captured frames
+    for (auto i = 0; i < num_frames; ++i)
+    {
         // Save depth and colour frames
-        save_frame_depth_data(raspi_name, depth);
-        save_frame_color_data(raspi_name, color);
+        save_frame_depth_data(raspi_name, depth_frames[i]);
+        save_frame_color_data(raspi_name, color_frames[i]);
     }
 
     return EXIT_SUCCESS;
