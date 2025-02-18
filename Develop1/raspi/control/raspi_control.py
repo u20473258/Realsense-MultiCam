@@ -140,10 +140,6 @@ def send_files_to_orin(pi):
     # Jetson Orin Nano's IP address
     url = "http://192.168.249.145:5000/uploads"
 
-    # Store the frame number to send to orin nano
-    colour_frame_number = int(input("What colour frame should be used?"))
-    depth_frame_number = int(input("What depth frame number should be used?"))
-
     # List of file paths to send
     folder_paths_to_Send = [
         f"colour",
