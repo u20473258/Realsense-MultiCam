@@ -13,25 +13,26 @@
 #include <iomanip>
 
 
-void metadata_to_csv(const rs2::frame& frm, const std::string& file_name)
+// Saves metadata to a text file
+void metadata_to_text(const rs2::frame& frm, const std::string& file_name)
 {
-    // Create and open csv file for the metadata
-    std::ofstream csv_metadata_file;
-    csv_metadata_file.open(file_name);
+    // Create and open text file for the metadata
+    std::ofstream text_metadata_file;
+    text_metadata_file.open(file_name);
 
-    csv_metadata_file << "Stream," << rs2_stream_to_string(frm.get_profile().stream_type()) << "\nMetadata Attribute,Value\n";
+    text_metadata_file << "Stream," << rs2_stream_to_string(frm.get_profile().stream_type()) << "\nMetadata Attribute,Value\n";
 
     // Record all the available metadata attributes
     for (size_t i = 0; i < RS2_FRAME_METADATA_COUNT; i++)
     {
         if (frm.supports_frame_metadata((rs2_frame_metadata_value)i))
         {
-            csv_metadata_file << rs2_frame_metadata_to_string((rs2_frame_metadata_value)i) << ","
+            text_metadata_file << rs2_frame_metadata_to_string((rs2_frame_metadata_value)i) << ","
                 << frm.get_frame_metadata((rs2_frame_metadata_value)i) << "\n";
         }
     }
 
-    csv_metadata_file.close();
+    text_metadata_file.close();
 }
 
 void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
@@ -64,11 +65,11 @@ void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
         csv_depth_file.close();
 
         // Create metadata file name
-        std::stringstream csv_metadata_file;
-        csv_metadata_file << "depth_metadata/" << pi_name << "_depth_metadata_" << frame.get_frame_number() << ".csv";
+        std::stringstream text_metadata_file;
+        text_metadata_file << "depth_metadata/" << pi_name << "_depth_metadata_" << frame.get_frame_number() << ".txt";
 
         // Record per-frame metadata for UVC streams
-        metadata_to_csv(image, csv_metadata_file.str());
+        metadata_to_text(image, text_metadata_file.str());
     }
 }
 
@@ -87,11 +88,11 @@ void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
         std::cout << "Saved " << png_colour_file.str() << std::endl;
 
         // Create metadata file name
-        std::stringstream csv_metadata_file;
-        csv_metadata_file << "colour_metadata/" << pi_name << "_colour_metadata_" << frame.get_frame_number() << ".csv";
+        std::stringstream text_metadata_file;
+        text_metadata_file << "colour_metadata/" << pi_name << "_colour_metadata_" << frame.get_frame_number() << ".txt";
 
         // Record per-frame metadata for UVC streams
-        metadata_to_csv(image, csv_metadata_file.str());
+        metadata_to_text(image, text_metadata_file.str());
     }
 
 }
