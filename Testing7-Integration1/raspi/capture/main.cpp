@@ -84,9 +84,10 @@ void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
 }
 
 // Capture Example demonstrates how to
-// capture depth and color video streams and render them to the screen
+// Capture depth and color video streams and store them in specific files
 int main(int argc, char * argv[]) try
 {
+    // Congifure the streaming configurations
     rs2::config cfg;
     cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 15);
     cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 15);
@@ -94,12 +95,17 @@ int main(int argc, char * argv[]) try
     rs2::pipeline pipe;
     pipe.start(cfg);
 
+    // Get the number of frames from user
+    char *output;
+    auto num_frames = strtol(argv[1], &output, 10);
+
+    // Store the raspberry pi name for filename purposes
     std::string raspi_name = "raspi1";
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();
 
-    for (auto i = 0; i < 100; ++i) // Application still alive?
+    for (auto i = 0; i < num_frames; ++i) // Application still alive?
     {
         rs2::frameset data = pipe.wait_for_frames(); // Wait for next set of frames from the camera
 
