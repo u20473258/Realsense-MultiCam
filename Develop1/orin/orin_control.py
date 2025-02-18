@@ -184,13 +184,13 @@ if __name__ == "__main__":
     while(True):
         # Promt user to get command
         print("Please select one of the following commands to proceed:\n")
-        print("C -> Begin Capture\n")
-        print("R -> Reboot Raspberry Pi 5s\n")
-        command = input("Enter command")
+        print("C -> Begin Capture")
+        print("R -> Reboot Raspberry Pi 5s")
+        command = input("Enter command:\t")
         
         if command == 'C':
             print("How long, in seconds, should the cameras capture?\n")
-            capture_duration = int(input("Choose from the following: 1, 2, 5, 10, 15, 20, 25, 30, 60, 100"))
+            capture_duration = int(input("Choose from the following: 1, 2, 5, 10, 15, 20, 25, 30, 60, 100. \t"))
             send_command_to_raspis(command, capture_duration)
         elif command == 'R':
             send_command_to_raspis(command, -1)

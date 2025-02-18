@@ -39,8 +39,8 @@ def capture(num_frames):
                      "1500" : "100"}
     
     try:
-        capture_command = "./capture " + num_frames
-        subprocess.run(["./capture "], check=True)
+        arguments = [num_frames]
+        subprocess.run(["./capture"] + arguments, check=True)
         print("Capture " + num_frames + " frames (" + frame_options[num_frames] + "s) complete successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error executing Python script: {e}")
@@ -73,64 +73,60 @@ def wait_for_command_from_orin():
     
     # Wait until command is received
     command_not_received = True
-    try:
-        while command_not_received:
-            data, addr = sock.recvfrom(BUFFER_SIZE)
-            message = data.decode().strip()
-            print(f"Received message: {message} from {addr}")
+    while command_not_received:
+        data, addr = sock.recvfrom(BUFFER_SIZE)
+        message = data.decode().strip()
+        print(f"Received message: {message} from {addr}")
+        
+        # Command handling
+        if message == "CAPTURE_1s":
+            capture("15")
+            command_not_received = False
             
-            # Command handling
-            if message == "CAPTURE_1s":
-                capture("15")
-                command_not_received = False
-                
-            elif message == "CAPTURE_2s":
-                capture("30")
-                command_not_received = False
-                
-            elif message == "CAPTURE_5s":
-                capture("75")
-                command_not_received = False
-                
-            elif message == "CAPTURE_10s":
-                capture("150")
-                command_not_received = False
-                
-            elif message == "CAPTURE_15s":
-                capture("225")
-                command_not_received = False
-                
-            elif message == "CAPTURE_20s":
-                capture("300")
-                command_not_received = False
-                
-            elif message == "CAPTURE_25s":
-                capture("375")
-                command_not_received = False
-                
-            elif message == "CAPTURE_30s":
-                capture("450")
-                command_not_received = False
-                
-            elif message == "CAPTURE_60s":
-                capture("900")
-                command_not_received = False
-                
-            elif message == "CAPTURE_100s":
-                capture("1500")
-                command_not_received = False
-                
-            elif message == "REBOOT":
-                reboot_system()
-                command_not_received = False
-                
-            else:
-                print(f"Unknown command: {message}")
+        elif message == "CAPTURE_2s":
+            capture("30")
+            command_not_received = False
             
-    except KeyboardInterrupt:
-        print("UDP Listener interrupted. Closing socket...")
-
-    finally:
+        elif message == "CAPTURE_5s":
+            capture("75")
+            command_not_received = False
+            
+        elif message == "CAPTURE_10s":
+            capture("150")
+            command_not_received = False
+            
+        elif message == "CAPTURE_15s":
+            capture("225")
+            command_not_received = False
+            
+        elif message == "CAPTURE_20s":
+            capture("300")
+            command_not_received = False
+            
+        elif message == "CAPTURE_25s":
+            capture("375")
+            command_not_received = False
+            
+        elif message == "CAPTURE_30s":
+            capture("450")
+            command_not_received = False
+            
+        elif message == "CAPTURE_60s":
+            capture("900")
+            command_not_received = False
+            
+        elif message == "CAPTURE_100s":
+            capture("1500")
+            command_not_received = False
+            
+        elif message == "REBOOT":
+            reboot_system()
+            command_not_received = False
+            
+        else:
+            print(f"Unknown command: {message}")
+            command_not_received = False
+            
         sock.close()
         print("Socket closed.")
 
