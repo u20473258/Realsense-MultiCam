@@ -134,7 +134,7 @@ def wait_for_command_from_orin():
 """ Use HTTP REST API POST command to send all captured data to Jetson Orin Nano """
 def send_files_to_orin(pi):
     # Jetson Orin Nano's IP address
-    url = "http://192.168.249.145:5000/uploads"
+    url = "http://192.168.249.155:5000/uploads"
 
     # List of file paths to send
     folder_paths_to_Send = [
