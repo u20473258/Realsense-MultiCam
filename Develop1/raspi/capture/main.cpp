@@ -11,6 +11,8 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <thread>
+#include <vector>
 
 
 // Saves metadata to a text file
@@ -119,27 +121,22 @@ int main(int argc, char * argv[]) try
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();
 
-    // Create a vector to store the frames for further processing
-    std::vector<rs2::frame> depth_frames;
-    std::vector<rs2::frame> color_frames;
-
-    // Capture num_frames frames
+    // Create a vector to store threads
+    std::vector<std::thread> threads;
     for (auto i = 0; i < num_frames; ++i)
     {
-        // Wait for next set of frames
         rs2::frameset data = pipe.wait_for_frames();
 
-        // Store frames
-        depth_frames.push_back(data.get_depth_frame());
-        color_frames.push_back(data.get_color_frame());
+        // Create a thread for each frame and process it in parallel
+        threads.emplace_back(save_frame_depth_data, raspi_name, data.get_depth_frame());
+        threads.emplace_back(save_frame_color_data, raspi_name, data.get_color_frame());
     }
 
-    // Store captured frames
-    for (auto i = 0; i < num_frames; ++i)
+    // Ensure all threads are done before terminating program
+    for (auto &t : threads)
     {
-        // Save depth and colour frames
-        save_frame_depth_data(raspi_name, depth_frames[i]);
-        save_frame_color_data(raspi_name, color_frames[i]);
+        if (t.joinable())
+            t.join();
     }
 
     return EXIT_SUCCESS;
