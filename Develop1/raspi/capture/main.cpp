@@ -102,10 +102,42 @@ void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
 // Capture depth and color video streams and store them in specific files
 int main(int argc, char * argv[]) try
 {
+    // Check for connected realsense camera
+    rs2::context ctx;
+    auto devices = ctx.query_devices();
+
+    if (devices.size() == 0) {
+        std::cerr << "No RealSense devices found!" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     // Congifure the streaming configurations
     rs2::config cfg;
     cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 15);
     cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 15);
+
+    // Select first available device
+    rs2::device dev = devices.front();
+    rs2::sensor sensor;
+
+    // Find depth sensor
+    for (auto&& s : dev.query_sensors()) {
+        if (s.supports(RS2_OPTION_INTER_CAM_SYNC_MODE)) {
+            sensor = s;
+            break;
+        }
+    }
+
+    if (!sensor) {
+        std::cerr << "No compatible sensor found!" << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Set the camera mode: 0 (Default), 1 (Master), 2 (Slave)
+    int sync_mode = 2;
+    sensor.set_option(RS2_OPTION_INTER_CAM_SYNC_MODE, static_cast<float>(sync_mode));
+
+    std::cout << "Inter-camera sync mode set to: " << sync_mode << std::endl;
 
     // Create pipe and start it
     rs2::pipeline pipe;
