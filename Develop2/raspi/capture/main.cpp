@@ -113,31 +113,8 @@ int main(int argc, char * argv[]) try
 
     // Congifure the streaming configurations
     rs2::config cfg;
-    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 15);
-    cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 15);
-
-    // Select first available device
-    rs2::device dev = devices.front();
-    rs2::sensor sensor;
-
-    // Find depth sensor
-    for (auto&& s : dev.query_sensors()) {
-        if (s.supports(RS2_OPTION_INTER_CAM_SYNC_MODE)) {
-            sensor = s;
-            break;
-        }
-    }
-
-    if (!sensor) {
-        std::cerr << "No compatible sensor found!" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    // Set the camera mode: 0 (Default), 1 (Master), 2 (Slave)
-    int sync_mode = 0;
-    sensor.set_option(RS2_OPTION_INTER_CAM_SYNC_MODE, static_cast<float>(sync_mode));
-
-    std::cout << "Inter-camera sync mode set to: " << sync_mode << std::endl;
+    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 90);
+    cfg.enable_stream(RS2_STREAM_COLOR, 640, 360, RS2_FORMAT_RGB8, 90);
 
     // Create pipe and start it
     rs2::pipeline pipe;
