@@ -1,0 +1,7 @@
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/capture.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/list_install_components.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/install.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/install/local.dir
+/home/baraka/Desktop/Realsense-MultiCam/Develop1/raspi/capture/cmake-build-debug/CMakeFiles/install/strip.dir
