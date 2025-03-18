@@ -137,48 +137,10 @@ def receive_files_from_pis():
     app.run(host='0.0.0.0', port=5000)
 
 
-""" Perform a basic processing step: convert depth.csv files into pngs and save them """
-def convert_csv_to_depth(raspis):
-    image_sets = []
-    for i in raspberrys:
-        frame_number = input("What depth frame number should be used for " + i)
-        image_sets.append(int(frame_number))
-    
-    # Depth image relative path
-    relative_path = "uploads/"
-    
-    # Store depth image dimensions/resolution
-    depth_image_width = 640
-    depth_image_height = 480
-    
-    # For each raspberry pi
-    for x in range(len(raspis)):
-        depth_image_path = relative_path + raspis[x] + "_depth_" + str(image_sets[x]) + ".csv"
-        
-        # Create the numpy array depth image
-        depth_image = np.empty((depth_image_height, depth_image_width), dtype=float)  
-        # Access the depth image .csv file and extract the data
-        with open(depth_image_path, newline='') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=",", quotechar='|')
-            i = 0
-            for row in spamreader:
-                j = 0
-                for depth in row:
-                    if j != 640:
-                        depth_image[i,j] = float(depth)
-                        j += 1
-                i += 1
-
-        # Apply a colour map to the depth image
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
-        
-        # Save depth image
-        depth_filename = relative_path + raspis[x] + "_depth_image_" + str(image_sets[x]) + ".png"
-        cv2.imwrite(depth_filename, depth_colormap)
-
 
 if __name__ == "__main__":
     
+    # Store the name of raspberry pi 5s
     raspberrys = ["raspi1", "raspi2", "raspi3", "raspi4", "raspi5"]
     
     while(True):
