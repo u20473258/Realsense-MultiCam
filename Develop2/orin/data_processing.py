@@ -123,46 +123,43 @@ class processor:
     raspi_frame_numbers -> (list) the actual frame numbers captured for each raspi
     threshold -> (int) the maximum allowable difference in timestamps between frames of different RPis
     is_depth_frames -> (bool) do you want to get the frame numbers of the depth frames?
+    reference_ToAt -> (int) most recent (largest) Time of Arrival timestamp 
+    reference_RPi -> (int) raspi index, of RPi with reference_ToAt, in self.raspberrys list 
     
     Return: (list) frameset
     """
-    def get_frameset(self, raspi_curr_frame_num, raspi_frame_numbers, threshold, is_depth_frames):
+    def find_a_frameset(self, raspi_curr_frame_num, raspi_frame_numbers, threshold, is_depth_frames, reference_ToAt, reference_RPi):
         frame_set = raspi_curr_frame_num.copy()
         
-        # Find the largest (most recent) ToA timestamp
-        largest_ToA = self.get_ToA_from_file(self.get_filename(self.raspberrys[0], raspi_frame_numbers[0][raspi_curr_frame_num[0]], is_depth_frames, True))
-        reference_RPi = 0
-        for i in range(1, len(self.raspberrys)):
-            curr_ToA = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]], is_depth_frames, True))
-            if largest_ToA < curr_ToA:
-                largest_ToA = curr_ToA
-                reference_RPi = i
-                
         # Find the frame number of each RPi that is closely matched to the largest ToA timestamp
         for i in range(0, len(self.raspberrys)):
             # Avoid comparing reference Pi to itself
             if i == reference_RPi:
                 continue
+            
             else:
-                difference_above_threshold = True
+                # Find a closely matched ToA timestamp
+                not_found_match = True
                 j = 0
-                while difference_above_threshold:
-                    # Check if we have reached the last frame for the RPi
+                while not_found_match:
+                    # Check if reached the last frame for current RPi
                     if raspi_curr_frame_num[i]+j >= len(raspi_frame_numbers[i]):
-                        # Set a flag to indicate no matched frames
-                        for k in range(len(self.raspberrys)):
+                        for k in range(0, len(self.raspberrys)):
                             frame_set[k] = -1
-                        # Break out of function
                         return frame_set
-                    
                     else:
-                        curr_ToA = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]+j], is_depth_frames, True))
-                        if abs(curr_ToA - largest_ToA) < threshold:
-                            difference_above_threshold = False
-                            frame_set[i] = frame_set[i]+j
+                        curr_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]+j], is_depth_frames, True))
+                        # If within threshold
+                        if abs(curr_ToAt - reference_ToAt) < threshold:
+                            not_found_match = False
+                            frame_set[i] += j
                         else:
-                            j += 1 
-        
+                            if curr_ToAt - reference_ToAt > threshold:
+                                for k in range(0, len(self.raspberrys)):
+                                    frame_set[k] = -2
+                                return frame_set
+                            else:
+                                j += 1 
         return frame_set
     
     
@@ -171,11 +168,10 @@ class processor:
     timestamp to determine which frames from the respective RPis are closely-matched. The output is a list of framesets.
     
     threshold -> (int) the maximum allowable difference in timestamps between frames of different RPis
-    first_depth_frames
     
     Return: (list) closely-matched framesets
     """
-    def depth_software_sync(self, threshold, first_depth_frames):
+    def depth_software_sync(self, threshold):
         print("Performing software synchronisation. Output is series of closely-matched framesets.")
         # Store the number of depth frames collected
         num_frames = self.capture_duration * self.depth_stream_config['fps']
@@ -185,27 +181,52 @@ class processor:
         
         # Get frame numbers for all raspis
         raspi_frame_numbers = []
+        j = 0
         for i in self.raspberrys:
-            raspi_frame_numbers.append(self.get_frame_numbers(i, True, num_frames))
+            raspi_frame_numbers.append((self.get_frame_numbers(i, True, num_frames)))
+            # Ensure list is sorted
+            raspi_frame_numbers[j].sort()
+            j += 1
             
         # Store the current frame numbers for each RPi
         raspi_curr_frame_num = []
         for i in range(0, len(self.raspberrys)):
-            raspi_curr_frame_num.append(raspi_frame_numbers[i][0])
-        
-        # Loop through frames
-        still_matching_frames = True
-        while not(still_matching_frames):
-            curr_frameset = self.get_frameset(raspi_curr_frame_num, raspi_frame_numbers, threshold, True)
+            raspi_curr_frame_num.append(0)
             
-            # Check for the end of frames flag
-            if curr_frameset[0] == -1:
-                still_matching_frames = False
+        # Loop through frames to find matching frameset
+        not_done_matching = True
+        while not_done_matching:
+            # Get the RPi with the most recent frame (largest ToAt)
+            reference_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[0], raspi_frame_numbers[0][raspi_curr_frame_num[0]], True, True))
+            reference_RPi = 0
+            for i in range(1, len(self.raspberrys)):
+                current_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]], True, True))
+                if reference_ToAt < current_ToAt:
+                    reference_ToAt = current_ToAt
+                    reference_RPi = i
+                    
+            # Try find a frameset
+            frameset_index = self.find_a_frameset(raspi_curr_frame_num, raspi_frame_numbers, threshold, True, reference_ToAt, reference_RPi)
+            
+            # Look for flags
+            if frameset_index[0] == -1 or frameset_index[0] == -2 and raspi_curr_frame_num[reference_RPi] < len(raspi_frame_numbers[reference_RPi]):
+                # Increment previous reference RPi frame number index
+                raspi_curr_frame_num[reference_RPi] += 1
             else:
-                framesets.append(curr_frameset.copy())
+                # Store frameset
+                frameset = []
                 for i in range(0, len(self.raspberrys)):
-                    raspi_curr_frame_num = curr_frameset[i] + 1
-        
+                    frameset.append(raspi_frame_numbers[i][frameset_index[i]])
+                framesets.append(frameset)
+                # Increment frame numbers
+                for i in range(0, len(self.raspberrys)):
+                    raspi_curr_frame_num[i] += 1
+                    
+            # Check if exhausted all the frames of any RPi
+            for i in range(0, len(self.raspberrys)):
+                if raspi_curr_frame_num[i] >= num_frames:
+                    not_done_matching = False
+                    
         return framesets
         
         
