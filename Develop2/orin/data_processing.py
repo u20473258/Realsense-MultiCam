@@ -78,15 +78,25 @@ class processor:
     
     Return: (int) ToA timestamp
     """
-    def get_ToA_from_file(self, filename):        
-        # Open file and get line 9 (ToA timestamp is always on line 9 of metadata)
-        with open(filename) as fp:
-            for i, line in enumerate(fp):
-                if i == 8:
-                    # Split line using comma
-                    split = line.split(",")
-                    # The ToA timestamp should be the second item in the list
-                    return int(split[1])
+    def get_ToA_from_file(self, filename, is_depth_frame):     
+        if is_depth_frame:
+            # Open file and get line 9 (ToA timestamp is always on line 9 of metadata)
+            with open(filename) as fp:
+                for i, line in enumerate(fp):
+                    if i == 8:
+                        # Split line using comma
+                        split = line.split(",")
+                        # The ToA timestamp should be the second item in the list
+                        return int(split[1])
+        else:
+            # Open file and get line 7 (ToA timestamp is always on line 9 of metadata)
+            with open(filename) as fp:
+                for i, line in enumerate(fp):
+                    if i == 6:
+                        # Split line using comma
+                        split = line.split(",")
+                        # The ToA timestamp should be the second item in the list
+                        return int(split[1])
     
     
     """
@@ -148,7 +158,7 @@ class processor:
                             frame_set[k] = -1
                         return frame_set
                     else:
-                        curr_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]+j], is_depth_frames, True))
+                        curr_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]+j], is_depth_frames, True), is_depth_frames)
                         # If within threshold
                         if abs(curr_ToAt - reference_ToAt) < threshold:
                             not_found_match = False
@@ -197,10 +207,10 @@ class processor:
         not_done_matching = True
         while not_done_matching:
             # Get the RPi with the most recent frame (largest ToAt)
-            reference_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[0], raspi_frame_numbers[0][raspi_curr_frame_num[0]], True, True))
+            reference_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[0], raspi_frame_numbers[0][raspi_curr_frame_num[0]], True, True), True)
             reference_RPi = 0
             for i in range(1, len(self.raspberrys)):
-                current_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]], True, True))
+                current_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]], True, True), True)
                 if reference_ToAt < current_ToAt:
                     reference_ToAt = current_ToAt
                     reference_RPi = i
@@ -260,18 +270,24 @@ class processor:
         # Loop through each frameset
         for depth_frameset in depth_framesets:
             colour_frameset = []
+            
             # For each frame in the frameset
             for depth_frame in range(0, len(depth_frameset)):
                 # Get the ToAt of the depth frame
-                curr_depth_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], depth_frameset[depth_frame], True, True))
+                curr_depth_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], depth_frameset[depth_frame], True, True), True)
+                
                 # Loop through each colour frame for the current raspi
                 for i in raspi_frame_numbers[depth_frame]:
-                    curr_colour_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], i, False, True))
+                    curr_colour_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], i, False, True), False)
+                    
+                    # print(curr_colour_frame_ToAt)
                     if curr_colour_frame_ToAt < (threshold + curr_depth_frame_ToAt):
+                        # print(abs(curr_depth_frame_ToAt - curr_colour_frame_ToAt))
                         if abs(curr_depth_frame_ToAt - curr_colour_frame_ToAt) < threshold:
                             colour_frameset.append(i)
                     else: 
                         break
+                    
             # Check if a matching colour frame was found for each depth frame in the depth framest
             if len(colour_frameset) == len(depth_frameset):
                 colour_framesets.append(colour_frameset)
