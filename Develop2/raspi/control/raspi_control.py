@@ -26,22 +26,11 @@ def create_file_directories():
     
 
 """ Capture num_frames frames using capture script """
-def capture(num_frames):
-    frame_options = {"15" : "1",
-                     "30" : "2",
-                     "75" : "5",
-                     "150" : "10",
-                     "225" : "15",
-                     "300" : "20",
-                     "375" : "25",
-                     "450" : "30",
-                     "900" : "60",
-                     "1500" : "100"}
-    
+def capture(num_frames, duration):
     try:
         arguments = [num_frames]
         subprocess.run(["./capture"] + arguments, check=True)
-        print("Capture " + num_frames + " frames (" + frame_options[num_frames] + "s) complete successfully.")
+        print("Capture " + num_frames + " frames (" + str(duration) + "s) complete successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error executing Python script: {e}")
 
@@ -80,43 +69,43 @@ def wait_for_command_from_orin():
         
         # Command handling
         if message == "CAPTURE_1s":
-            capture("15")
+            capture(str(fps*1), 1)
             command_not_received = False
             
         elif message == "CAPTURE_2s":
-            capture("30")
+            capture(str(fps*2), 2)
             command_not_received = False
             
         elif message == "CAPTURE_5s":
-            capture("75")
+            capture(str(fps*5), 5)
             command_not_received = False
             
         elif message == "CAPTURE_10s":
-            capture("150")
+            capture(str(fps*10), 10)
             command_not_received = False
             
         elif message == "CAPTURE_15s":
-            capture("225")
+            capture(str(fps*15), 15)
             command_not_received = False
             
         elif message == "CAPTURE_20s":
-            capture("300")
+            capture(str(fps*20), 20)
             command_not_received = False
             
         elif message == "CAPTURE_25s":
-            capture("375")
+            capture(str(fps*25), 25)
             command_not_received = False
             
         elif message == "CAPTURE_30s":
-            capture("450")
+            capture(str(fps*30), 30)
             command_not_received = False
             
         elif message == "CAPTURE_60s":
-            capture("900")
+            capture(str(fps*60), 60)
             command_not_received = False
             
         elif message == "CAPTURE_100s":
-            capture("1500")
+            capture(str(fps*100), 100)
             command_not_received = False
             
         elif message == "REBOOT":
@@ -161,6 +150,7 @@ def send_files_to_orin(pi):
 
 if __name__ == "__main__":
     pi_name = "raspi1"
+    fps = 60
     
     while(True):
         create_file_directories()

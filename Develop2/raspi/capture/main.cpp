@@ -113,8 +113,8 @@ int main(int argc, char * argv[]) try
 
     // Congifure the streaming configurations
     rs2::config cfg;
-    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 90);
-    cfg.enable_stream(RS2_STREAM_COLOR, 640, 360, RS2_FORMAT_RGB8, 90);
+    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 60);
+    cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 60);
 
     // Create pipe and start it
     rs2::pipeline pipe;
