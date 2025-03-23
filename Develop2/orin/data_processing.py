@@ -172,7 +172,7 @@ class processor:
     Return: (list) closely-matched framesets
     """
     def depth_software_sync(self, threshold):
-        print("Performing software synchronisation. Output is series of closely-matched framesets.")
+        print("Performing depth software synchronisation. Output is series of closely-matched framesets.")
         # Store the number of depth frames collected
         num_frames = self.capture_duration * self.depth_stream_config['fps']
         
@@ -228,6 +228,56 @@ class processor:
                     not_done_matching = False
                     
         return framesets
+    
+    
+    """
+    Algorithm that performs software synchronisation of captured coloured data. The algorithm uses the Time of Arrival (ToA)
+    timestamp to determine which frames from the respective RPis are closely-matched to the given depth frameset. 
+    The output is a list of framesets.
+    
+    threshold -> (int) the maximum allowable difference in timestamps between frames of different RPis
+    depth_framesets -> (list) the framesets from the depth SW sync
+    
+    Return: (list) closely-matched framesets
+    """
+    def colour_software_sync(self, threshold, depth_framesets):
+        print("Performing colour software synchronisation. Output is series of closely-matched framesets.")
+        # Store the number of depth frames collected
+        num_frames = self.capture_duration * self.depth_stream_config['fps']
+        
+        # Store the framesets
+        colour_framesets = []
+        
+        # Get frame numbers for all raspis
+        raspi_frame_numbers = []
+        j = 0
+        for i in self.raspberrys:
+            raspi_frame_numbers.append((self.get_frame_numbers(i, False, num_frames)))
+            # Ensure list is sorted
+            raspi_frame_numbers[j].sort()
+            j += 1
+        
+        # Loop through each frameset
+        for depth_frameset in depth_framesets:
+            colour_frameset = []
+            # For each frame in the frameset
+            for depth_frame in range(0, len(depth_frameset)):
+                # Get the ToAt of the depth frame
+                curr_depth_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], depth_frameset[depth_frame], True, True))
+                # Loop through each colour frame for the current raspi
+                for i in raspi_frame_numbers[depth_frame]:
+                    curr_colour_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], i, False, True))
+                    if curr_colour_frame_ToAt < (threshold + curr_depth_frame_ToAt):
+                        if abs(curr_depth_frame_ToAt - curr_colour_frame_ToAt) < threshold:
+                            colour_frameset.append(i)
+                    else: 
+                        break
+            # Check if a matching colour frame was found for each depth frame in the depth framest
+            if len(colour_frameset) == len(depth_frameset):
+                colour_framesets.append(colour_frameset)
+                colour_framesets.append(depth_frameset)
+                    
+        return colour_framesets
         
         
     """
