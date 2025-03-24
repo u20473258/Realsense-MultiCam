@@ -142,10 +142,10 @@ if __name__ == "__main__":
     raspberrys = ["raspi1", "raspi2", "raspi3", "raspi4", "raspi5"]
     depth_capture_config = {'width' : 640,
                             'height' : 480,
-                            'fps' : 60}
+                            'fps' : 30}
     colour_capture_config = {'width' : 640,
                             'height' : 480,
-                            'fps' : 60}
+                            'fps' : 30}
     
     while(True):
         # Promt user to get command

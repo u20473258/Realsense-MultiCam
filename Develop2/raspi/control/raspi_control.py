@@ -150,7 +150,7 @@ def send_files_to_orin(pi):
 
 if __name__ == "__main__":
     pi_name = "raspi1"
-    fps = 60
+    fps = 30
     
     while(True):
         create_file_directories()
