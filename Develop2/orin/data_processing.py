@@ -20,6 +20,46 @@ class processor:
         self.colour_stream_config = colour_stream_config
         self.raspberrys = raspberrys
         
+        
+    """
+    Algorithm that counts the number of frames that were captured for a given raspi
+    
+    raspi -> (string) the RPi name
+    is_depth_frames -> (bool) do you want to get the frame numbers of the depth frames?
+    
+    Return: (int) number of frames
+    """
+    def count_depth_frames(self, raspi, is_depth_frames):
+        num_frames = 0
+        
+        # Store the filename to use when search directory
+        filename = ""
+        filename += raspi
+        
+        # Search for depth frames
+        if is_depth_frames:
+            filename += "_depth"
+            
+            # Get all the filenames in the directory and loop through them
+            for root, dirs, files in os.walk(self.data_filepath):
+                for file in files: 
+                    # Count only the .csv files that match the filename 
+                    if file.count(filename) != 0 and file.endswith('.csv'):
+                        num_frames += 1
+                        
+        # Search for colour frames
+        else:
+            filename += "_colour"
+            
+            # Get all the filenames in the directory and loop through them
+            for root, dirs, files in os.walk(self.data_filepath):
+                for file in files: 
+                    # Count only the .png files that match the filename 
+                    if file.count(filename) != 0 and file.endswith('.png'):
+                        num_frames += 1
+                        
+        return num_frames
+    
     
     """
     Algorithm that gets the filenames i.e. the frame numbers for a given RPi for a given file type.
@@ -110,7 +150,9 @@ class processor:
     Return: (str) filename
     """
     def get_filename(self, raspi, frame_number, is_depth_frame, is_metadata):
-        filename = "uploads/"    
+        filename = ""
+        filename += self.data_filepath   
+        frame_number = str(frame_number)   
         
         if is_depth_frame:
             if is_metadata:
@@ -182,10 +224,12 @@ class processor:
     Return: (list) closely-matched framesets
     """
     def depth_software_sync(self, threshold):
-        print("Performing depth software synchronisation. Output is series of closely-matched framesets.")
+        print("Performing software synchronisation. Output is series of closely-matched framesets.")
         # Store the number of depth frames collected
-        num_frames = self.capture_duration * self.depth_stream_config['fps']
-        
+        num_frames = []
+        for i in self.raspberrys:
+            num_frames.append(self.count_depth_frames(i, True))
+                
         # Store the framesets
         framesets = []
         
@@ -193,7 +237,7 @@ class processor:
         raspi_frame_numbers = []
         j = 0
         for i in self.raspberrys:
-            raspi_frame_numbers.append((self.get_frame_numbers(i, True, num_frames)))
+            raspi_frame_numbers.append((self.get_frame_numbers(i, True, num_frames[j])))
             # Ensure list is sorted
             raspi_frame_numbers[j].sort()
             j += 1
@@ -234,7 +278,7 @@ class processor:
                     
             # Check if exhausted all the frames of any RPi
             for i in range(0, len(self.raspberrys)):
-                if raspi_curr_frame_num[i] >= num_frames:
+                if raspi_curr_frame_num[i] >= num_frames[i]:
                     not_done_matching = False
                     
         return framesets
