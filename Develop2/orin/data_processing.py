@@ -372,36 +372,36 @@ class processor:
             cv2.imwrite(depth_filename, depth_colormap)
             
     
-    """
-    Algorithm that converts a depth .csv file to a colourised depth .png images using opencv and saves it in
-    self.data_filepath
+    # """
+    # Algorithm that converts a depth .csv file to a colourised depth .png images using opencv and saves it in
+    # self.data_filepath
     
-    raspi_index -> (int) index of raspi name in self.raspberrys to convert
-    depth_frame_number -> (int) frame number of depth frame to convert
-    """
-    def convert_csv_to_depth(self, raspi_index, depth_frame_number):
-        # Store the depth image file path
-        depth_image_path = self.data_filepath + self.raspberrys[raspi_index] + "_depth_" + str(depth_frame_number) + ".csv"
+    # raspi_index -> (int) index of raspi name in self.raspberrys to convert
+    # depth_frame_number -> (int) frame number of depth frame to convert
+    # """
+    # def convert_csv_to_depth(self, raspi_index, depth_frame_number):
+    #     # Store the depth image file path
+    #     depth_image_path = self.data_filepath + self.raspberrys[raspi_index] + "_depth_" + str(depth_frame_number) + ".csv"
         
-        # Create the numpy array depth image
-        depth_image = np.empty((self.depth_stream_config['height'], self.depth_stream_config['width']), dtype=float)  
-        # Access the depth image .csv file and extract the data
-        with open(depth_image_path, newline='') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=",", quotechar='|')
-            i = 0
-            for row in spamreader:
-                j = 0
-                for depth in row:
-                    if j != self.depth_stream_config['width']:
-                        depth_image[i,j] = float(depth)
-                        j += 1
-                i += 1
+    #     # Create the numpy array depth image
+    #     depth_image = np.empty((self.depth_stream_config['height'], self.depth_stream_config['width']), dtype=float)  
+    #     # Access the depth image .csv file and extract the data
+    #     with open(depth_image_path, newline='') as csvfile:
+    #         spamreader = csv.reader(csvfile, delimiter=",", quotechar='|')
+    #         i = 0
+    #         for row in spamreader:
+    #             j = 0
+    #             for depth in row:
+    #                 if j != self.depth_stream_config['width']:
+    #                     depth_image[i,j] = float(depth)
+    #                     j += 1
+    #             i += 1
                 
-        # Apply a colour map to the depth image
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
+    #     # Apply a colour map to the depth image
+    #     depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
         
-        # Save depth image
-        depth_filename = self.data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
-        cv2.imwrite(depth_filename, depth_colormap)
+    #     # Save depth image
+    #     depth_filename = self.data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
+    #     cv2.imwrite(depth_filename, depth_colormap)
         
         
