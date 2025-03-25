@@ -169,18 +169,24 @@ if __name__ == "__main__":
         processor_1 = processor("uploads/", capture_duration, depth_capture_config, colour_capture_config, raspberrys)
 
         
-        # Do Depth SW syncing
-        threshold = 66 #ms
-        depth_framesets = processor_1.depth_software_sync(threshold)
-        print(depth_framesets)
+        image_sets = []
+        for i in raspberrys:
+            frame_number = input("What depth frame number should be used for " + i)
+            image_sets.append(int(frame_number))
+        processor_1.convert_csv_to_depth(image_sets)
         
-        # Do Colour SW syncing
-        threshold = 66 #ms
-        colour_framesets = processor_1.colour_software_sync(threshold, depth_framesets)
-        print(colour_framesets)
+        # # Do Depth SW syncing
+        # threshold = 66 #ms
+        # depth_framesets = processor_1.depth_software_sync(threshold)
+        # print(depth_framesets)
         
-        # Convert the SW synced depth image .csv files to .png files
-        for frameset in depth_framesets:
-            for raspi_index in range(0, len(frameset)):
-                processor_1.convert_csv_to_depth(raspi_index, frameset[raspi_index])
+        # # Do Colour SW syncing
+        # threshold = 66 #ms
+        # colour_framesets = processor_1.colour_software_sync(threshold, depth_framesets)
+        # print(colour_framesets)
+        
+        # # Convert the SW synced depth image .csv files to .png files
+        # for frameset in depth_framesets:
+        #     for raspi_index in range(0, len(frameset)):
+        #         processor_1.convert_csv_to_depth(raspi_index, frameset[raspi_index])
 
