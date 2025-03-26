@@ -463,8 +463,10 @@ class processor:
     
     raspi_index -> (int) index of raspi name in self.raspberrys to convert
     depth_frame_number -> (int) frame number of depth frame to convert
+    depth_scale -> (float) adjust according to the depth unit in your images (e.g., 1000 for mm to meters)
+    depth_trunc -> (float) how much should the depth image be truncated
     """
-    def convert_depth_to_pcd(self, raspi_index, depth_frame_number, depth_scale, depth_trunc):
+    def convert_csv_to_pcd(self, raspi_index, depth_frame_number, depth_scale, depth_trunc):
         # Get depth image
         depth_image = self.get_numpy_from_csv(raspi_index, depth_frame_number)
                 

@@ -204,6 +204,9 @@ if __name__ == "__main__":
         for i in range(0, len(raspberrys)):
             processor_1.convert_single_csv_to_depth(i, depth_framesets[colour_framesets[frameset][len(raspberrys)]][i])
             
-        # Create point clouds from selected frameset
+        # Create point clouds from depth frames in selected frameset
         print("Converting depth image .csv files to .ply point cloud files...")
-
+        depth_scale = 1000.0
+        depth_trunc = 1.5
+        for i in range(0, len(raspberrys)):
+            processor_1.convert_csv_to_pcd(i, depth_framesets[colour_framesets[frameset][len(raspberrys)]][i], )
