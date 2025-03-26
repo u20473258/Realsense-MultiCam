@@ -140,12 +140,22 @@ if __name__ == "__main__":
     
     # Store the name of raspberry pi 5s
     raspberrys = ["raspi1", "raspi2", "raspi3", "raspi4", "raspi5"]
+
+    # Serial number of D455 camera for each raspi
+    serial_numbers = {"raspi1" : "138322250306",
+                    "raspi2" : "138322250306",
+                    "raspi3" : "138322250306",
+                    "raspi4" : "138322250306"}
+
+    # Depth capture configuration setup 
     depth_capture_config = {'width' : 640,
                             'height' : 480,
-                            'fps' : 30}
+                            'fps' : 15}
+
+    # Colour capture configuration setup 
     colour_capture_config = {'width' : 640,
                             'height' : 480,
-                            'fps' : 30}
+                            'fps' : 15}
     
     while(True):
         # Promt user to get command
@@ -168,25 +178,29 @@ if __name__ == "__main__":
         
         processor_1 = processor("uploads/", capture_duration, depth_capture_config, colour_capture_config, raspberrys)
 
-        
-        image_sets = []
-        for i in raspberrys:
-            frame_number = input("What depth frame number should be used for " + i)
-            image_sets.append(int(frame_number))
-        processor_1.convert_csv_to_depth(image_sets)
-        
-        # # Do Depth SW syncing
-        # threshold = 66 #ms
-        # depth_framesets = processor_1.depth_software_sync(threshold)
-        # print(depth_framesets)
-        
-        # # Do Colour SW syncing
-        # threshold = 66 #ms
-        # colour_framesets = processor_1.colour_software_sync(threshold, depth_framesets)
-        # print(colour_framesets)
-        
-        # # Convert the SW synced depth image .csv files to .png files
-        # for frameset in depth_framesets:
-        #     for raspi_index in range(0, len(frameset)):
-        #         processor_1.convert_csv_to_depth(raspi_index, frameset[raspi_index])
+        # Convert some depth csv to png
+        # image_sets = []
+        # for i in raspberrys:
+        #     frame_number = input("What depth frame number should be used for " + i + "\t")
+        #     image_sets.append(int(frame_number))
+        # processor_1.convert_csv_to_depth(image_sets)
+
+        # Do SW syncing
+        print("Performing SW synchronisation now...")
+
+        threshold = 66 #ms
+        depth_framesets = processor_1.depth_software_sync(threshold)
+        print(depth_framesets)
+        print(len(depth_framesets))
+
+        colour_framesets = processor_1.colour_software_sync(threshold, depth_framesets)
+        print(colour_framesets)
+        print(len(colour_framesets))
+
+        frameset = int(input("Please select the index of the frameset to process further from the given SW colour framesets \t"))
+
+        # Convert the depth images in selected frameset to pngs
+        print("Converting depth image .csv files to .png images...")
+        for i in range(0, len(raspberrys)):
+            processor_1.convert_single_csv_to_depth(i, depth_framesets[colour_framesets[frameset][len(raspberrys)]][i])
 
