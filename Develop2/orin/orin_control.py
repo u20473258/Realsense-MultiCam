@@ -209,4 +209,15 @@ if __name__ == "__main__":
         depth_scale = 1000.0
         depth_trunc = 1.5
         for i in range(0, len(raspberrys)):
-            processor_1.convert_csv_to_pcd(i, depth_framesets[colour_framesets[frameset][len(raspberrys)]][i], )
+            processor_1.convert_csv_to_pcd(i, depth_framesets[colour_framesets[frameset][len(raspberrys)]][i], depth_scale, depth_trunc)
+            
+        # Perform registration
+        print("Performing registration...")
+        reference_raspi = 0
+        transformations = processor_1.registration(reference_raspi, depth_framesets[colour_framesets[frameset][len(raspberrys)]], colour_framesets[frameset])
+        
+        # Perform reconstruction
+        print("Performing reconstruction...")
+        reference_raspi = 0
+        processor_1.reconstruction(reference_raspi, depth_framesets[colour_framesets[frameset][len(raspberrys)]], colour_framesets[frameset], transformations)
+        

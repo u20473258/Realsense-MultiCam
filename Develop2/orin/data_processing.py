@@ -434,6 +434,7 @@ class processor:
         # Save depth image
         depth_filename = self.processing_data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
         cv2.imwrite(depth_filename, depth_colormap)
+        print("Depth image .pngs saved.")
         
     """
     # Loads the camera instrinsics for a specific camera from a .csv file
@@ -484,3 +485,66 @@ class processor:
         # Save point cloud
         pcd_filename = self.processing_data_filepath + self.raspberrys[raspi_index] + "_pcd_" + str(depth_frame_number) + ".ply"
         o3d.io.write_point_cloud(pcd_filename, pcd)
+        print("Point cloud .pcd saved.")
+
+
+    """
+    Algorithm that performs registration of the different camera views
+    
+    reference_raspi_index -> (int) index of raspi name in self.raspberrys to be used as the reference camera view
+    depth_frameset -> (list) frameset of depth frames to be used for registration
+    colour_frameset -> (list) frameset of colour frames to be used for registration
+    
+    returns (list) transformation matrix
+    """
+    def registration(self, reference_raspi_index, depth_frameset, colour_frameset):
+        transforms = [
+        np.eye(4),  # Camera 1 (identity, reference frame)
+        np.array([[0.952304544001, 0.055685926827, 0.300025220655, -0.337908239954],
+                [-0.046863706186, 0.998233224821, -0.036527002431, 0.026966347488],
+                [-0.301529183527, 0.020724536604, 0.953231684883, 0.041012801797],
+                [0.000000000000, 0.000000000000, 0.000000000000, 1.000000000000]])
+        ]
+        
+        return transforms
+    
+    
+    """
+    Algorithm that performs reconstruction of the 3D image
+    
+    reference_raspi_index -> (int) index of raspi name in self.raspberrys to be used as the reference camera view
+    depth_frameset -> (list) frameset of depth frames to be used for registration
+    colour_frameset -> (list) frameset of colour frames to be used for registration
+    transformation_matrix -> (list) holds the transformation matrixes to be used to different camera views
+    
+    Saves the reconstruction in the processed data folder
+    """
+    def reconstruction(self, reference_raspi_index, depth_frameset, colour_frameset, transformation_matrix):
+        # Define the combined point cloud
+        pcd_combined = o3d.geometry.PointCloud()
+        
+        # Transform point clouds
+        point_clouds = []
+        i = 0
+        for raspi in range(0, len(self.raspberrys)):
+            # Load the .ply file
+            file_path = self.processing_data_filepath + self.raspberrys[raspi] + "_pcd_" + str(depth_frameset[raspi]) + ".ply"
+            point_cloud = o3d.io.read_point_cloud(file_path)
+            
+            # Transform point cloud
+            point_cloud.transform(transformation_matrix[i])
+            i += 1
+            
+            # Store transformed point cloud
+            point_clouds.append(point_cloud)
+            pcd_combined += point_cloud
+        
+        # Visualize aligned point clouds
+        o3d.visualization.draw_geometries(point_clouds)
+        
+        # Save the combined point cloud
+        filename = self.processing_data_filepath + "combined_pcd.ply"
+        o3d.io.write_point_cloud(filename, pcd_combined)
+        print("Combined point cloud saved.")
+        
+    
