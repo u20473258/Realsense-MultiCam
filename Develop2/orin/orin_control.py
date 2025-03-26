@@ -176,7 +176,7 @@ if __name__ == "__main__":
             
         receive_files_from_pis()
         
-        processor_1 = processor("uploads/", capture_duration, depth_capture_config, colour_capture_config, raspberrys)
+        processor_1 = processor("uploads/", capture_duration, depth_capture_config, colour_capture_config, raspberrys, serial_numbers)
 
         # Convert some depth csv to png
         # image_sets = []
@@ -203,4 +203,7 @@ if __name__ == "__main__":
         print("Converting depth image .csv files to .png images...")
         for i in range(0, len(raspberrys)):
             processor_1.convert_single_csv_to_depth(i, depth_framesets[colour_framesets[frameset][len(raspberrys)]][i])
+            
+        # Create point clouds from selected frameset
+        print("Converting depth image .csv files to .ply point cloud files...")
 

@@ -2,6 +2,11 @@ import numpy as np
 import csv
 import cv2
 import os
+import open3d as o3d
+import numpy as np
+from PIL import Image
+import pandas as pd
+import shutil
 
 class processor:
     """
@@ -12,13 +17,23 @@ class processor:
     depth_stream_config -> (dict) the streaming configuration setup for depth sensor
     colour_stream_config -> (dict) the streaming configuration setup for colour sensor
     raspberrys -> (list) raspi names used in system
+    serial_numbers -> (dict) stores the serial numbers for each raspi, the key is the raspi name
     """
-    def __init__(self, filepath, duration, depth_stream_config, colour_stream_config, raspberrys):
+    def __init__(self, filepath, duration, depth_stream_config, colour_stream_config, raspberrys, serial_numbers):
         self.data_filepath = filepath
         self.capture_duration = duration
         self.depth_stream_config = depth_stream_config
         self.colour_stream_config = colour_stream_config
         self.raspberrys = raspberrys
+        self.processing_data_filepath = "processing_data/"
+        self.serial_numbers = serial_numbers
+        
+        # Create a separate folder for storing the output data from the processing
+        if os.path.exists(f"processing_data"):
+            shutil.rmtree(f"processing_data")
+    
+        # Creates new directories for the camera data       
+        os.makedirs(f"processing_data", exist_ok=True)
         
         
     """
@@ -375,15 +390,14 @@ class processor:
             depth_filename = self.data_filepath + self.raspberrys[x] + "_depth_image_" + str(depth_frame_numbers[x]) + ".png"
             cv2.imwrite(depth_filename, depth_colormap)
             
-    
+            
     """
-    Algorithm that converts a depth .csv file to a colourised depth .png images using opencv and saves it in
-    self.data_filepath
+    Opens up a .csv file and returns it as a numpy array
     
     raspi_index -> (int) index of raspi name in self.raspberrys to convert
     depth_frame_number -> (int) frame number of depth frame to convert
     """
-    def convert_single_csv_to_depth(self, raspi_index, depth_frame_number):
+    def get_numpy_from_csv(self, raspi_index, depth_frame_number):
         # Store the depth image file path
         depth_image_path = self.data_filepath + self.raspberrys[raspi_index] + "_depth_" + str(depth_frame_number) + ".csv"
         
@@ -401,11 +415,70 @@ class processor:
                         j += 1
                 i += 1
                 
+        return depth_image
+    
+    
+    """
+    Algorithm that converts a depth .csv file to a colourised depth .png images using opencv and saves it in
+    self.data_filepath
+    
+    raspi_index -> (int) index of raspi name in self.raspberrys to convert
+    depth_frame_number -> (int) frame number of depth frame to convert
+    """
+    def convert_single_csv_to_depth(self, raspi_index, depth_frame_number):
+        depth_image = self.get_numpy_from_csv(raspi_index, depth_frame_number)
+                
         # Apply a colour map to the depth image
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
         
         # Save depth image
-        depth_filename = self.data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
+        depth_filename = self.processing_data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
         cv2.imwrite(depth_filename, depth_colormap)
         
+    """
+    # Loads the camera instrinsics for a specific camera from a .csv file
+    # serial_number -> the serial number of the camera
+    # return: fx, fy, ppx, ppy
+    """
+    def load_cam_intrinsics(self, raspi_index):
+        # Get serial number
+        serial_number = self.serial_numbers[self.raspberrys[raspi_index]]
         
+        # Open the frame_metadata csv
+        df = pd.read_csv("camera_intrinsics.csv")
+        
+        # Search for the correct row
+        row_num = 0
+        while True:
+            if df.loc[row_num, "serial_number"] == serial_number:
+                break
+            else:
+                row_num += 1
+        
+        return df.loc[row_num, "fx"], df.loc[row_num, "fy"], df.loc[row_num, "ppx"], df.loc[row_num, "ppy"]    
+    
+    
+    """
+    Algorithm that converts a depth .csv file to a point cloud and stores it in the same folder
+    
+    raspi_index -> (int) index of raspi name in self.raspberrys to convert
+    depth_frame_number -> (int) frame number of depth frame to convert
+    """
+    def convert_depth_to_pcd(self, raspi_index, depth_frame_number, depth_scale, depth_trunc):
+        # Get depth image
+        depth_image = self.get_numpy_from_csv(raspi_index, depth_frame_number)
+                
+        # Get instrinsic of camera
+        fx, fy, ppx, ppy = self.load_cam_intrinsics(raspi_index)
+        
+        # Define intrinsic parameters for Open3D
+        intrinsic = o3d.camera.PinholeCameraIntrinsic(self.depth_stream_config['height'], self.depth_stream_config['width'], fx, fy, ppx, ppy)
+        
+        # Create point cloud from depth image
+        pcd = o3d.geometry.PointCloud.create_from_depth_image(o3d.geometry.Image(depth_image), 
+                                                            intrinsic, depth_scale=depth_scale, 
+                                                            depth_trunc=depth_trunc)
+        
+        # Save point cloud
+        pcd_filename = self.processing_data_filepath + self.raspberrys[raspi_index] + "_pcd_" + str(depth_frame_number) + ".ply"
+        o3d.io.write_point_cloud(pcd_filename, pcd)
