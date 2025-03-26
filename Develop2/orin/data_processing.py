@@ -224,7 +224,6 @@ class processor:
     Return: (list) closely-matched framesets
     """
     def depth_software_sync(self, threshold):
-        print("Performing software synchronisation. Output is series of closely-matched framesets.")
         # Store the number of depth frames collected
         num_frames = []
         for i in self.raspberrys:
@@ -241,8 +240,8 @@ class processor:
             # Ensure list is sorted
             raspi_frame_numbers[j].sort()
             j += 1
-            
-        # Store the current frame numbers for each RPi
+                        
+        # Store the index in raspi_frame_numbers of the current frame number for each RPi
         raspi_curr_frame_num = []
         for i in range(0, len(self.raspberrys)):
             raspi_curr_frame_num.append(0)
@@ -253,8 +252,10 @@ class processor:
             # Get the RPi with the most recent frame (largest ToAt)
             reference_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[0], raspi_frame_numbers[0][raspi_curr_frame_num[0]], True, True), True)
             reference_RPi = 0
+            
             for i in range(1, len(self.raspberrys)):
                 current_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[i], raspi_frame_numbers[i][raspi_curr_frame_num[i]], True, True), True)
+                
                 if reference_ToAt < current_ToAt:
                     reference_ToAt = current_ToAt
                     reference_RPi = i
@@ -264,13 +265,14 @@ class processor:
             
             # Look for flags
             if frameset_index[0] == -1 or frameset_index[0] == -2 and raspi_curr_frame_num[reference_RPi] < len(raspi_frame_numbers[reference_RPi]):
-                # Increment previous reference RPi frame number index
+                # Increment previous reference RPi frame number index if it is still smaller than 
                 raspi_curr_frame_num[reference_RPi] += 1
             else:
                 # Store frameset
                 frameset = []
                 for i in range(0, len(self.raspberrys)):
                     frameset.append(raspi_frame_numbers[i][frameset_index[i]])
+                    
                 framesets.append(frameset)
                 # Increment frame numbers
                 for i in range(0, len(self.raspberrys)):
@@ -292,10 +294,9 @@ class processor:
     threshold -> (int) the maximum allowable difference in timestamps between frames of different RPis
     depth_framesets -> (list) the framesets from the depth SW sync
     
-    Return: (list) closely-matched framesets
+    Return: (list) closely-matched framesets with the matching depth frameset's index appended
     """
     def colour_software_sync(self, threshold, depth_framesets):
-        print("Performing colour software synchronisation. Output is series of closely-matched framesets.")
         # Store the number of depth frames collected
         num_frames = self.capture_duration * self.depth_stream_config['fps']
         
@@ -312,30 +313,33 @@ class processor:
             j += 1
         
         # Loop through each frameset
-        for depth_frameset in depth_framesets:
+        for depth_frameset in range(0, len(depth_framesets)):
             colour_frameset = []
             
-            # For each frame in the frameset
-            for depth_frame in range(0, len(depth_frameset)):
+            # For each depth frame in the frameset
+            for depth_frame in range(0, len(depth_framesets[depth_frameset])):
                 # Get the ToAt of the depth frame
-                curr_depth_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], depth_frameset[depth_frame], True, True), True)
+                curr_depth_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], depth_framesets[depth_frameset][depth_frame], True, True), True)
                 
                 # Loop through each colour frame for the current raspi
-                for i in raspi_frame_numbers[depth_frame]:
-                    curr_colour_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], i, False, True), False)
-                    
-                    # print(curr_colour_frame_ToAt)
-                    if curr_colour_frame_ToAt < (threshold + curr_depth_frame_ToAt):
-                        # print(abs(curr_depth_frame_ToAt - curr_colour_frame_ToAt))
-                        if abs(curr_depth_frame_ToAt - curr_colour_frame_ToAt) < threshold:
-                            colour_frameset.append(i)
-                    else: 
+                for curr_colour_frame in raspi_frame_numbers[depth_frame]:
+                    curr_colour_frame_ToAt = self.get_ToA_from_file(self.get_filename(self.raspberrys[depth_frame], curr_colour_frame, False, True), False)
+                                        
+                    if abs(curr_depth_frame_ToAt - curr_colour_frame_ToAt) < threshold:
+                        colour_frameset.append(curr_colour_frame)
+                        # No need to keep searching colour frames when we found a matching one
+                        break
+                        
+                    # If the curr_colour_frame_ToAt is much larger than the (threshold + curr_depth_frame_ToAt) we want to break since there is no need
+                    # to continue searching
+                    if curr_colour_frame_ToAt > (threshold + curr_depth_frame_ToAt):
                         break
                     
             # Check if a matching colour frame was found for each depth frame in the depth framest
-            if len(colour_frameset) == len(depth_frameset):
+            if len(colour_frameset) == len(depth_framesets[depth_frameset]):
+                colour_frameset.append(depth_frameset)
                 colour_framesets.append(colour_frameset)
-                colour_framesets.append(depth_frameset)
+                # colour_framesets.append(depth_frameset)
                     
         return colour_framesets
         
@@ -372,36 +376,36 @@ class processor:
             cv2.imwrite(depth_filename, depth_colormap)
             
     
-    # """
-    # Algorithm that converts a depth .csv file to a colourised depth .png images using opencv and saves it in
-    # self.data_filepath
+    """
+    Algorithm that converts a depth .csv file to a colourised depth .png images using opencv and saves it in
+    self.data_filepath
     
-    # raspi_index -> (int) index of raspi name in self.raspberrys to convert
-    # depth_frame_number -> (int) frame number of depth frame to convert
-    # """
-    # def convert_csv_to_depth(self, raspi_index, depth_frame_number):
-    #     # Store the depth image file path
-    #     depth_image_path = self.data_filepath + self.raspberrys[raspi_index] + "_depth_" + str(depth_frame_number) + ".csv"
+    raspi_index -> (int) index of raspi name in self.raspberrys to convert
+    depth_frame_number -> (int) frame number of depth frame to convert
+    """
+    def convert_single_csv_to_depth(self, raspi_index, depth_frame_number):
+        # Store the depth image file path
+        depth_image_path = self.data_filepath + self.raspberrys[raspi_index] + "_depth_" + str(depth_frame_number) + ".csv"
         
-    #     # Create the numpy array depth image
-    #     depth_image = np.empty((self.depth_stream_config['height'], self.depth_stream_config['width']), dtype=float)  
-    #     # Access the depth image .csv file and extract the data
-    #     with open(depth_image_path, newline='') as csvfile:
-    #         spamreader = csv.reader(csvfile, delimiter=",", quotechar='|')
-    #         i = 0
-    #         for row in spamreader:
-    #             j = 0
-    #             for depth in row:
-    #                 if j != self.depth_stream_config['width']:
-    #                     depth_image[i,j] = float(depth)
-    #                     j += 1
-    #             i += 1
+        # Create the numpy array depth image
+        depth_image = np.empty((self.depth_stream_config['height'], self.depth_stream_config['width']), dtype=float)  
+        # Access the depth image .csv file and extract the data
+        with open(depth_image_path, newline='') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=",", quotechar='|')
+            i = 0
+            for row in spamreader:
+                j = 0
+                for depth in row:
+                    if j != self.depth_stream_config['width']:
+                        depth_image[i,j] = float(depth)
+                        j += 1
+                i += 1
                 
-    #     # Apply a colour map to the depth image
-    #     depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
+        # Apply a colour map to the depth image
+        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=25.5), cv2.COLORMAP_JET)
         
-    #     # Save depth image
-    #     depth_filename = self.data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
-    #     cv2.imwrite(depth_filename, depth_colormap)
+        # Save depth image
+        depth_filename = self.data_filepath + self.raspberrys[raspi_index] + "_depth_image_" + str(depth_frame_number) + ".png"
+        cv2.imwrite(depth_filename, depth_colormap)
         
         
