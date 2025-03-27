@@ -469,14 +469,14 @@ class processor:
     """
     def convert_csv_to_pcd(self, raspi_index, depth_frame_number, depth_scale, depth_trunc):
         # Get depth image
-        depth_image = self.get_numpy_from_csv(raspi_index, depth_frame_number)
+        depth_image = (self.get_numpy_from_csv(raspi_index, depth_frame_number)).astype(np.float32)
                 
         # Get instrinsic of camera
         fx, fy, ppx, ppy = self.load_cam_intrinsics(raspi_index)
         
         # Define intrinsic parameters for Open3D
         intrinsic = o3d.camera.PinholeCameraIntrinsic(self.depth_stream_config['height'], self.depth_stream_config['width'], fx, fy, ppx, ppy)
-        
+         
         # Create point cloud from depth image
         pcd = o3d.geometry.PointCloud.create_from_depth_image(o3d.geometry.Image(depth_image), 
                                                             intrinsic, depth_scale=depth_scale, 
