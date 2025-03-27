@@ -143,9 +143,10 @@ if __name__ == "__main__":
 
     # Serial number of D455 camera for each raspi
     serial_numbers = {"raspi1" : "138322250306",
-                    "raspi2" : "138322250306",
-                    "raspi3" : "138322250306",
-                    "raspi4" : "138322250306"}
+                    "raspi2" : "138322252073",
+                    "raspi3" : "141322252627",
+                    "raspi4" : "141322250372",
+                    "raspi5" : "141322252882"}
 
     # Depth capture configuration setup 
     depth_capture_config = {'width' : 640,
