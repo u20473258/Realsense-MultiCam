@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/baraka/Desktop/Realsense-MultiCam/Develop2/raspi/capture/cmake-build-debug",
+  "command": "/usr/bin/c++ -I/home/baraka/Desktop/Realsense-MultiCam/Develop2/raspi/capture/capture  -std=c++11 -g -fdiagnostics-color=always -o CMakeFiles/capture.dir/main.cpp.o -c /home/baraka/Desktop/Realsense-MultiCam/Develop2/raspi/capture/main.cpp",
+  "file": "/home/baraka/Desktop/Realsense-MultiCam/Develop2/raspi/capture/main.cpp",
+  "output": "CMakeFiles/capture.dir/main.cpp.o"
+}
+]
