@@ -36,6 +36,15 @@ def capture(num_frames, duration):
 
 
 """ Reboot raspberry pi """   
+def get_serial_number():
+    try:
+        print("Getting serial number...")
+        subprocess.run(["rs-enumerate-devices", "|", "grep", "Serial", ">>", "serial.txt"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error rebooting system: {e}")
+
+
+""" Reboot raspberry pi """   
 def reboot_system():
     try:
         print("Rebooting system...")
@@ -108,6 +117,11 @@ def wait_for_command_from_orin():
             capture(str(fps*100), 100)
             command_not_received = False
             
+        elif message == "GET_SERIAL":
+            get_serial = True
+            get_serial_number()
+            command_not_received = False
+            
         elif message == "REBOOT":
             reboot_system()
             command_not_received = False
@@ -121,38 +135,56 @@ def wait_for_command_from_orin():
 
 
 """ Use HTTP REST API POST command to send all captured data to Jetson Orin Nano """
-def send_files_to_orin(pi):
-    # Jetson Orin Nano's IP address
-    url = "http://192.168.249.155:5000/uploads"
+def send_files_to_orin(pi, send_serial):
+    if send_serial:
+        # Jetson Orin Nano's IP address
+        url = "http://192.168.249.155:5000/raspi_info"
+        
+        filename = "serial.txt"
+        # Ensure it's a file
+        if os.path.isfile(filename):
+            with open(filename, "rb") as file:
+                # Send the file with its original name
+                file = {"file": (filename, file)}
+                response = requests.post(url, files=file)
+                
+                # Print response
+                print(f"Uploaded {filename}: {response.status_code} - {response.text}")
+                
+    else:
+        # Jetson Orin Nano's IP address
+        url = "http://192.168.249.155:5000/uploads"
 
-    # List of file paths to send
-    folder_paths_to_Send = [
-        f"colour",
-        f"depth",
-        f"colour_metadata",
-        f"depth_metadata"
-    ]
+        # List of file paths to send
+        folder_paths_to_Send = [
+            f"colour",
+            f"depth",
+            f"colour_metadata",
+            f"depth_metadata"
+        ]
 
-    for folder_path in folder_paths_to_Send:
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            
-            # Ensure it's a file
-            if os.path.isfile(file_path):
-                with open(file_path, "rb") as file:
-                    # Send the file with its original name
-                    files = {"file": (filename, file)}
-                    response = requests.post(url, files=files)
-                    
-                    # Print response
-                    print(f"Uploaded {filename}: {response.status_code} - {response.text}")
+        for folder_path in folder_paths_to_Send:
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename)
+                
+                # Ensure it's a file
+                if os.path.isfile(file_path):
+                    with open(file_path, "rb") as file:
+                        # Send the file with its original name
+                        files = {"file": (filename, file)}
+                        response = requests.post(url, files=files)
+                        
+                        # Print response
+                        print(f"Uploaded {filename}: {response.status_code} - {response.text}")
                     
 
 if __name__ == "__main__":
     pi_name = "raspi1"
-    fps = 30
+    fps = 15
+    
+    get_serial = False
     
     while(True):
         create_file_directories()
         wait_for_command_from_orin()
-        send_files_to_orin(pi_name)
+        send_files_to_orin(pi_name, get_serial)
