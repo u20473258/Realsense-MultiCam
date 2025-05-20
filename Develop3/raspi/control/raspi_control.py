@@ -39,7 +39,7 @@ def capture(num_frames, duration):
 def get_serial_number():
     try:
         print("Getting serial number...")
-        subprocess.run(["rs-enumerate-devices", "|", "grep", "Serial", ">>", "serial.txt"], check=True)
+        subprocess.run(["rs-enumerate-devices", "|", "grep", "Serial", ">>", pi_name+"_serial.txt"], check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error rebooting system: {e}")
 
