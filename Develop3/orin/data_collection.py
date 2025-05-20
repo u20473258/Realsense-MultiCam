@@ -145,11 +145,16 @@ if __name__ == "__main__":
     print ("My filename is ", args.filename)
     print ("My capture duration is ", args.duration)
     
+    """ Capture images """
     if args.mode == 'capture':
         capture_duration = int(args.duration)
         send_command_to_raspis('C', capture_duration)
     else:
         send_command_to_raspis('R', -1)
         
+    """ Receive the images from the raspberry pis """
     receive_files_from_pis()
+    
+    """ Rename uploads folder """
+    os.rename("uploads", args.filename)
         
