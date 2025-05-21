@@ -125,7 +125,7 @@ int main(int argc, char * argv[]) try
     auto num_frames = strtol(argv[1], &output, 10);
 
     // Store the raspberry pi name for file name purposes
-    std::string raspi_name = "raspi1";
+    std::string raspi_name = argv[2];
 
     // Capture 30 frames to give autoexposure, etc. a chance to settle
     for (auto i = 0; i < 30; ++i) pipe.wait_for_frames();

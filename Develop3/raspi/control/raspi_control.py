@@ -28,7 +28,7 @@ def create_file_directories():
 """ Capture num_frames frames using capture script """
 def capture(num_frames, duration):
     try:
-        arguments = [num_frames]
+        arguments = [num_frames, pi_name]
         subprocess.run(["./capture"] + arguments, check=True)
         print("Capture " + num_frames + " frames (" + str(duration) + "s) complete successfully.")
     except subprocess.CalledProcessError as e:
@@ -179,7 +179,7 @@ def send_files_to_orin(pi, send_serial):
                     
 
 if __name__ == "__main__":
-    pi_name = "raspi1"
+    pi_name = socket.gethostname()
     fps = 15
     
     get_serial = False
