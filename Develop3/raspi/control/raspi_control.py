@@ -140,7 +140,7 @@ def send_files_to_orin(pi, send_serial):
         # Jetson Orin Nano's IP address
         url = "http://192.168.249.155:5000/raspi_info"
         
-        filename = "serial.txt"
+        filename = pi_name+"_serial.txt"
         # Ensure it's a file
         if os.path.isfile(filename):
             with open(filename, "rb") as file:
