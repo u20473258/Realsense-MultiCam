@@ -3,7 +3,6 @@ import shutil
 import socket
 import time
 from flask import Flask, request, jsonify
-from Develop3.orin.data_processing_1 import processor
 import csv
 
 # Initialise flask server
@@ -35,7 +34,7 @@ def send_command_to_raspis():
 
 
 """ Runs the flask server """
-@app.route('/uploads', methods=['POST'])
+@app.route('/raspi_info', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"})

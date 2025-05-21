@@ -3,6 +3,7 @@ import shutil
 import socket
 import subprocess
 import requests
+import time
                           
 
 """ Deletes previously captured data, if any, and creates new file directories for 
@@ -35,13 +36,16 @@ def capture(num_frames, duration):
         print(f"Error executing Python script: {e}")
 
 
-""" Reboot raspberry pi """   
+""" Getting serial number of connected D455 """   
 def get_serial_number():
     try:
         print("Getting serial number...")
-        subprocess.run(["rs-enumerate-devices", "|", "grep", "Serial", ">>", pi_name+"_serial.txt"], check=True)
+        subprocess.run("rs-enumerate-devices -s >> " + pi_name + "_serial.txt", shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Error rebooting system: {e}")
+        print(f"Error getting serial number: {e}")
+        
+    # Give Orin/Host time to start-up server
+    time.delay(5)
 
 
 """ Reboot raspberry pi """   
@@ -118,7 +122,6 @@ def wait_for_command_from_orin():
             command_not_received = False
             
         elif message == "GET_SERIAL":
-            get_serial = True
             get_serial_number()
             command_not_received = False
             
@@ -132,10 +135,12 @@ def wait_for_command_from_orin():
             
         sock.close()
         print("Socket closed.")
+    
+    return message
 
 
 """ Use HTTP REST API POST command to send all captured data to Jetson Orin Nano """
-def send_files_to_orin(pi, send_serial):
+def send_files_to_orin(send_serial):
     if send_serial:
         # Jetson Orin Nano's IP address
         url = "http://192.168.249.155:5000/raspi_info"
@@ -181,10 +186,11 @@ def send_files_to_orin(pi, send_serial):
 if __name__ == "__main__":
     pi_name = socket.gethostname()
     fps = 15
-    
-    get_serial = False
-    
+        
     while(True):
         create_file_directories()
-        wait_for_command_from_orin()
-        send_files_to_orin(pi_name, get_serial)
+        message = wait_for_command_from_orin()
+        if message == "GET_SERIAL":
+            send_files_to_orin(True)
+        else:
+            send_files_to_orin(False)
