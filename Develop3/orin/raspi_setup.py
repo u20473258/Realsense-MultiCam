@@ -78,7 +78,7 @@ if __name__ == "__main__":
     for filename in os.listdir("raspi_info"):
         pi_name = filename.split("_")[0]
         with open(filename, "rb") as file:
-            serial = (file.readline()).split(":")[1]
+            serial = (file.readline()).split("\t")[1]
             
         with open(csv_name, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)

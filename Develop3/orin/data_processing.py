@@ -203,7 +203,7 @@ def create_raspberry_pi(raspi: str, folder_path: str) -> raspberry_pi:
             break
         else:
             row_num += 1
-    serial_number = df.loc[row_num, "serial_number"]
+    serial_number = int(df.loc[row_num, "serial_number"])
     
     return raspberry_pi(raspi, serial_number, folder_path)
 
