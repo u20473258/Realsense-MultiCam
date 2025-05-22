@@ -28,6 +28,7 @@ class raspberry_pi:
         
         self.raspi_name = raspi_name
         self.serial_number = serial_number
+        self.folder_path = folder_path
         
         self.camera_intrinsics = self.load_cam_intrinsics()
         self.total_num_depth_frames = self.calculate_total_num_frames("depth")
@@ -288,7 +289,7 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
     Returns:
     list: A list of framesets of closely-matching frames.
     """
-    
+        
     # Get and store the current frame index for each raspberry pi
     curr_frame_index = []
     for raspi in raspberry_pis:
@@ -300,8 +301,8 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
     # Loop until just one camera has no more frames to match
     all_cameras_have_frames = True
     while all_cameras_have_frames:
-        curr_frameset = []
-        # Amongst the current frames, search for the one with the largest ToAt
+        curr_frameset = curr_frame_index.copy()
+        # Amongst the current frames, search for the one with the largest ToAt (most recent frame)
         ref_ToAt = extract_ToAt_from_file(folder_path, data_type, raspberry_pis[0].get_raspi_name(), 
                                           raspberry_pis[0].get_frame_numbers(data_type)[curr_frame_index[0]])
         ref_raspi = 0
@@ -311,25 +312,28 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
             if ref_ToAt < curr_ToAt:
                 ref_ToAt = curr_ToAt
                 ref_raspi = raspi
+                
+        # Store the reference raspberry pi's frame number in the current frameset
+        curr_frameset[ref_raspi] = raspberry_pis[ref_raspi].get_frame_numbers(data_type)[curr_frame_index[ref_raspi]]
         
         # Search for a frameset, i.e. a group of closely-matching frames from each raspberry pi
         continue_search = True
+        matching_frame_counter = 0
         raspi = 0
         new_curr_frame_index = curr_frame_index.copy()
         while continue_search and raspi < len(raspberry_pis):
             # Do not search for matching frame within reference raspberry's frames
-            if raspi == ref_raspi:
-                continue
-            else:
+            if raspi != ref_raspi:
                 # Search for matching frame
                 for frame in range(curr_frame_index[raspi], raspberry_pis[raspi].get_total_num_frames(data_type)):
                     curr_ToAt = extract_ToAt_from_file(folder_path, data_type, raspberry_pis[raspi].get_raspi_name(), 
                                                        raspberry_pis[raspi].get_frame_numbers(data_type)[frame])
                     
                     if abs(curr_ToAt - ref_ToAt) < threshold:
-                        curr_frameset.append(raspberry_pis[raspi].get_frame_numbers(data_type)[frame])
+                        curr_frameset[raspi] = raspberry_pis[raspi].get_frame_numbers(data_type)[frame]
                         # Store this frame number index temporarily
-                        new_curr_frame_index[raspi] = frame                        
+                        new_curr_frame_index[raspi] = frame + 1
+                        matching_frame_counter += 1                      
                         # Found closely-matching frame, so terminate search
                         break
                     
@@ -337,47 +341,44 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
                     elif curr_ToAt - ref_ToAt > threshold and frame == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
                         continue_search = False
                         break
-                        
-                    else:
-                        raspi += 1
+            
+            raspi += 1
                         
         # Save frameset if it is valid
-        if len(curr_frameset) == len(raspberry_pis):
+        if matching_frame_counter == (len(raspberry_pis) - 1):
             all_framesets.append(curr_frameset)
             
             # Update current frame number indexes
-            for i in range(0, len(raspberry_pis)):
-                curr_frame_index[i] = new_curr_frame_index[i]
+            curr_frame_index = new_curr_frame_index.copy()
+            curr_frame_index[ref_raspi] += 1
                 
         else:
-            # Increment the frame index of the reference raspberry pi
-            curr_frame_index[ref_raspi] += 1
+            # Check if any raspberry pi has no frames to search
+            for raspi in range(0, len(raspberry_pis)):
+                if curr_frame_index[raspi] == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
+                    all_cameras_have_frames = False
+                    break
+                else:
+                    curr_frame_index[raspi] += 1
             
-            # Increment the frame index of the  raspberry pi that ended the search (had no closely-matching frame)
-            curr_frame_index[raspi] += 1
-        
-            # Determine if search should continue
-            if curr_frame_index[ref_raspi] == raspberry_pis[ref_raspi].get_total_num_frames(data_type) \
-            or curr_frame_index[raspi] == raspberry_pis[raspi].get_total_num_frames(data_type):
-                all_cameras_have_frames = False
-            
-            
+    return all_framesets    
 
 
 def main():
     # Get user input
     parser=argparse.ArgumentParser(description="process data")
-    parser.add_argument("filename")
-    parser.add_argument("raspberry_pis", type=list)
+    parser.add_argument("folder_path")
+    parser.add_argument("raspberry_pis", nargs="*", type=str, default=["raspi1"],)
     parser.add_argument("delete_unsynced", choices=['Y', 'y', 'N', 'n'])
     args=parser.parse_args()
-    print ("My filename is ", args.filename)
+    print ("My filename is ", args.folder_path)
     
     # Create raspberry pi objects
     raspis = []
     for raspi in args.raspberry_pis:
-        raspis.append(create_raspberry_pi())
-        
+        raspis.append(create_raspberry_pi(raspi, args.folder_path))
+                
+    framesets = sync_data(100, args.folder_path, raspis, "depth")
 
 if __name__ == "__main__":
     main()
