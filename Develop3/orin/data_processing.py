@@ -9,6 +9,7 @@ import pandas as pd
 import shutil
 import argparse
 from collections import defaultdict
+import copy
 
 class raspberry_pi:
     """
@@ -304,7 +305,7 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
     # Loop until just one camera has no more frames to match
     all_cameras_have_frames = True
     while all_cameras_have_frames:
-        curr_frameset = curr_frame_index.copy()
+        curr_frameset = copy.deepcopy(curr_frame_index)
         # Amongst the current frames, search for the one with the largest ToAt (most recent frame)
         ref_ToAt = extract_ToAt_from_file(folder_path, data_type, raspberry_pis[0].get_raspi_name(), 
                                           raspberry_pis[0].get_frame_numbers(data_type)[curr_frame_index[0]])
@@ -323,7 +324,7 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
         continue_search = True
         matching_frame_counter = 0
         raspi = 0
-        new_curr_frame_index = curr_frame_index.copy()
+        new_curr_frame_index = copy.deepcopy(curr_frame_index)
         while continue_search and raspi < len(raspberry_pis):
             # Do not search for matching frame within reference raspberry's frames
             if raspi != ref_raspi:
@@ -335,16 +336,16 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
                     if abs(curr_ToAt - ref_ToAt) < threshold:
                         curr_frameset[raspi] = raspberry_pis[raspi].get_frame_numbers(data_type)[frame]
                         
-                        # Store this frame number index temporarily
-                        new_curr_frame_index[raspi] = frame
+                         # Store this frame number index temporarily
+                        new_curr_frame_index[raspi] = frame + 1
                         
-                        matching_frame_counter += 1  
-                                            
+                        matching_frame_counter += 1
+                         
                         # Found closely-matching frame, so terminate search
                         break
                     
                     # Check if the current ToAt is much bigger than the reference one or no more frames to match, terminate search if it is
-                    elif curr_ToAt > ref_ToAt or frame == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
+                    elif curr_ToAt > ref_ToAt or frame >= (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
                         continue_search = False
                         break
             
@@ -355,17 +356,18 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
             all_framesets.append(curr_frameset)
             
             # Update current frame number indexes
-            curr_frame_index = new_curr_frame_index.copy()
+            curr_frame_index = copy.deepcopy(new_curr_frame_index)
             curr_frame_index[ref_raspi] += 1
                 
         else:
-            # Check if any raspberry pi has no frames to search, increment current frame index otherwise
+            # Increment all current frame indexes
             for raspi in range(0, len(raspberry_pis)):
-                if curr_frame_index[raspi] == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
-                    all_cameras_have_frames = False
-                    break
-                else:
-                    curr_frame_index[raspi] += 1
+                curr_frame_index[raspi] += 1
+
+        # Check if any raspberry pi has no frames to search
+        for raspi in range(0, len(raspberry_pis)):
+            if curr_frame_index[raspi] >= raspberry_pis[raspi].get_total_num_frames(data_type):
+                all_cameras_have_frames = False
             
     return all_framesets    
 
