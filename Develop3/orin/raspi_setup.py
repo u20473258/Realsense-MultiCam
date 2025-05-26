@@ -75,11 +75,23 @@ if __name__ == "__main__":
     
     """ Extract serial numbers and store them in a excel sheet.  """
     csv_name = "raspi_serial_numbers.csv"
-    for filename in os.listdir("raspi_info"):
+    raspi_info_folder = "raspi_info"
+    
+    # Delete previous uploads folder and then create a new one
+    if os.path.exists(csv_name):
+        os.remove(csv_name)
+    
+    csv_data = []
+    for filename in os.listdir(raspi_info_folder):
+        print(filename)
         pi_name = filename.split("_")[0]
-        with open(filename, "rb") as file:
-            serial = (file.readline()).split("\t")[1]
+        with open(raspi_info_folder + "/" + filename, "rb") as file:
+            garbage = (file.readline()).decode("utf-8")
+            serial = int(((file.readline()).decode("utf-8")).split(' ')[12])
             
-        with open(csv_name, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerows([pi_name, serial])
+            csv_data.append([pi_name, serial])
+    
+    # Write all data to csv file     
+    with open(csv_name, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(csv_data)
