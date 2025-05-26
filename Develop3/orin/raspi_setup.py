@@ -49,6 +49,32 @@ def upload_file():
     
     return jsonify({"message": f"File {file.filename} saved at {file_path}"})
 
+def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
+    """ 
+    
+    Extract serial numbers and store them in a excel sheet.  
+    
+    """
+    
+    # Delete previous uploads folder and then create a new one
+    if os.path.exists(csv_name):
+        os.remove(csv_name)
+    
+    csv_data = []
+    for filename in os.listdir(raspi_info_folder):
+        print(filename)
+        pi_name = filename.split("_")[0]
+        with open(raspi_info_folder + "/" + filename, "rb") as file:
+            garbage = (file.readline()).decode("utf-8")
+            serial = int(((file.readline()).decode("utf-8")).split(' ')[12])
+            
+            csv_data.append([pi_name, serial])
+    
+    # Write all data to csv file     
+    with open(csv_name, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(csv_data)
+        
 
 if __name__ == "__main__":
     
@@ -71,27 +97,8 @@ if __name__ == "__main__":
     
     # Start Flask server
     app.run(host='0.0.0.0', port=5000)
-    
-    
-    """ Extract serial numbers and store them in a excel sheet.  """
+
+    # Extract and store raspi serial info
     csv_name = "raspi_serial_numbers.csv"
     raspi_info_folder = "raspi_info"
-    
-    # Delete previous uploads folder and then create a new one
-    if os.path.exists(csv_name):
-        os.remove(csv_name)
-    
-    csv_data = []
-    for filename in os.listdir(raspi_info_folder):
-        print(filename)
-        pi_name = filename.split("_")[0]
-        with open(raspi_info_folder + "/" + filename, "rb") as file:
-            garbage = (file.readline()).decode("utf-8")
-            serial = int(((file.readline()).decode("utf-8")).split(' ')[12])
-            
-            csv_data.append([pi_name, serial])
-    
-    # Write all data to csv file     
-    with open(csv_name, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(csv_data)
+    save_raspi_to_data_csv(csv_name, raspi_info_folder)
