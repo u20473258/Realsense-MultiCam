@@ -178,6 +178,9 @@ class raspberry_pi:
         # Close iterator
         obj.close()
         
+        # Sort frame numbers
+        frame_numbers.sort()
+        
         return frame_numbers
 
 
@@ -203,7 +206,7 @@ def create_raspberry_pi(raspi: str, folder_path: str) -> raspberry_pi:
             break
         else:
             row_num += 1
-    serial_number = int(df.loc[row_num, "serial_number"])
+    serial_number = df.loc[row_num, "serial_number"]
     
     return raspberry_pi(raspi, serial_number, folder_path)
 
@@ -331,14 +334,17 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
                     
                     if abs(curr_ToAt - ref_ToAt) < threshold:
                         curr_frameset[raspi] = raspberry_pis[raspi].get_frame_numbers(data_type)[frame]
+                        
                         # Store this frame number index temporarily
-                        new_curr_frame_index[raspi] = frame + 1
-                        matching_frame_counter += 1                      
+                        new_curr_frame_index[raspi] = frame
+                        
+                        matching_frame_counter += 1  
+                                            
                         # Found closely-matching frame, so terminate search
                         break
                     
                     # Check if the current ToAt is much bigger than the reference one or no more frames to match, terminate search if it is
-                    elif curr_ToAt - ref_ToAt > threshold and frame == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
+                    elif curr_ToAt > ref_ToAt or frame == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
                         continue_search = False
                         break
             
@@ -353,7 +359,7 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
             curr_frame_index[ref_raspi] += 1
                 
         else:
-            # Check if any raspberry pi has no frames to search
+            # Check if any raspberry pi has no frames to search, increment current frame index otherwise
             for raspi in range(0, len(raspberry_pis)):
                 if curr_frame_index[raspi] == (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
                     all_cameras_have_frames = False
@@ -369,6 +375,7 @@ def main():
     parser=argparse.ArgumentParser(description="process data")
     parser.add_argument("folder_path")
     parser.add_argument("raspberry_pis", nargs="*", type=str, default=["raspi1"],)
+    parser.add_argument("sync_threshold")
     parser.add_argument("delete_unsynced", choices=['Y', 'y', 'N', 'n'])
     args=parser.parse_args()
     print ("My filename is ", args.folder_path)
@@ -378,7 +385,9 @@ def main():
     for raspi in args.raspberry_pis:
         raspis.append(create_raspberry_pi(raspi, args.folder_path))
                 
-    framesets = sync_data(100, args.folder_path, raspis, "depth")
+    framesets = sync_data(int(args.sync_threshold), args.folder_path, raspis, "depth")
+    print(framesets)
+    print(len(framesets))
 
 if __name__ == "__main__":
     main()
