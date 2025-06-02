@@ -12,6 +12,7 @@
 #include <sstream>
 #include <iomanip>
 #include <thread>
+#include <utility>
 #include <vector>
 
 
@@ -39,6 +40,22 @@ void metadata_to_text(const rs2::frame& frm, const std::string& file_name)
 
 void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
 {
+    // Create filters
+    rs2::decimation_filter dec_filter;
+    rs2::spatial_filter spat_filter;
+    rs2::disparity_transform depth_to_disparity(true);
+    rs2::disparity_transform disparity_to_depth(false);
+
+    // Configure filters
+    dec_filter.set_option(RS2_OPTION_FILTER_MAGNITUDE, 3);
+    spat_filter.set_option(RS2_OPTION_FILTER_SMOOTH_ALPHA, 0.6f); // Delta is 20 by default
+
+    // Filter depth frame
+    frame = dec_filter.process(frame);
+    frame = depth_to_disparity.process(frame);
+    frame = spat_filter.process(frame);
+    frame = disparity_to_depth.process(frame);
+
     // Get the depth frame from the given frame
     rs2::depth_frame depth = frame.as<rs2::depth_frame>();
 
@@ -113,7 +130,7 @@ int main(int argc, char * argv[]) try
 
     // Congifure the streaming configurations
     rs2::config cfg;
-    cfg.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 15);
+    cfg.enable_stream(RS2_STREAM_DEPTH, 1280, 720, RS2_FORMAT_Z16, 15);
     cfg.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_RGB8, 15);
 
     // Create pipe and start it
