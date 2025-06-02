@@ -38,6 +38,7 @@ void metadata_to_text(const rs2::frame& frm, const std::string& file_name)
     text_metadata_file.close();
 }
 
+
 void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
 {
     // Create filters
@@ -56,41 +57,28 @@ void save_frame_depth_data(const std::string& pi_name, rs2::frame frame)
     frame = spat_filter.process(frame);
     frame = disparity_to_depth.process(frame);
 
-    // Get the depth frame from the given frame
-    rs2::depth_frame depth = frame.as<rs2::depth_frame>();
-
-    // We can only save video frames as csvs, so we skip the rest
+    // We can only save video frames, so we skip the rest
     if (auto image = frame.as<rs2::video_frame>())
     {
-        // Create csv file name
+        // Create file name
         std::stringstream file_name;
-        file_name << "depth/" << pi_name << "_depth_" << frame.get_frame_number() << ".csv";
+        file_name << "depth/" << pi_name << "_depth_" << frame.get_frame_number() << ".raw";
 
-        // Create csv file
-        std::ofstream csv_depth_file;
-        csv_depth_file.open(file_name.str());
-        csv_depth_file << std::setprecision(2);
-        
-        // Get the depth at each pixel index and store it in the csv
-        for (auto y = 0; y < image.get_height(); y++)
-        {
-            for (auto x = 0; x < image.get_width(); x++)
-            {
-                csv_depth_file << depth.get_distance(x, y) << ", ";
-            }
-            csv_depth_file << "\n";
-        }
+        std::ofstream outfile(file_name.str(), std::ofstream::binary);
+        outfile.write(static_cast<const char*>(image.get_data()), image.get_width() * image.get_height() * image.get_bytes_per_pixel());
+
         std::cout << "Saved " << file_name.str() << std::endl;
-        csv_depth_file.close();
+        outfile.close();
 
         // Create metadata file name
         std::stringstream text_metadata_file;
-        text_metadata_file << "depth_metadata/" << pi_name << "_depth_metadata_" << frame.get_frame_number() << ".txt";
+        text_metadata_file << "depth_metadata/" << pi_name << "_depth_metadata_" << image.get_frame_number() << ".txt";
 
         // Record per-frame metadata for UVC streams
         metadata_to_text(image, text_metadata_file.str());
     }
 }
+
 
 void save_frame_color_data(const std::string& pi_name, rs2::frame frame)
 {
