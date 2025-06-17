@@ -6,9 +6,12 @@ import requests
 import time
                           
 
-""" Deletes previously captured data, if any, and creates new file directories for 
-the new data """
 def create_file_directories():
+    """
+    Deletes previously captured data, if any, and creates new file directories for 
+    the new data.
+    """
+    
     # Checkes if directories exist
     if os.path.exists(f"colour"):
         shutil.rmtree(f"colour")
@@ -26,30 +29,58 @@ def create_file_directories():
     os.makedirs(f"depth_metadata", exist_ok=True)
     
 
-""" Capture num_frames frames using capture script """
-def capture(num_frames, duration):
+def capture(num_frames: int, duration: int, pi: str):
+    """
+    Capture a num_frames amount of frames using capture script.
+    
+    Parameters
+    ----------
+    num_frames : int
+        The total number of frames to capture.
+    duration : int
+        The actual duration of capture in seconds.
+    pi : str
+        The hostname of the raspberry pi.
+    """
+    
+    # Convert num frames to an integer
+    total_frames = str(num_frames)
+    
     try:
-        arguments = [num_frames, pi_name]
+        arguments = [total_frames, pi]
         subprocess.run(["./capture"] + arguments, check=True)
-        print("Capture " + num_frames + " frames (" + str(duration) + "s) complete successfully.")
+        print("Capture " + total_frames + " frames (" + str(duration) + "s) complete successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error executing Python script: {e}")
 
 
 """ Getting serial number of connected D455 """   
-def get_serial_number():
+def get_serial_number(pi: str):
+    """
+    Get the serial number of the connected D455.
+    
+    Parameters
+    ----------
+    pi : str
+        The hostname of the raspberry pi.
+    """
+    
     try:
         print("Getting serial number...")
-        subprocess.run("rs-enumerate-devices -s >> " + pi_name + "_serial.txt", shell=True, check=True)
+        subprocess.run("rs-enumerate-devices -s >> " + pi + "_serial.txt", shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error getting serial number: {e}")
         
     # Give Orin/Host time to start-up server
-    time.delay(5)
+    time.sleep(5)
 
 
 """ Reboot raspberry pi """   
 def reboot_system():
+    """
+    Reboot the raspberry pi.
+    """
+    
     try:
         print("Rebooting system...")
         subprocess.run(["sudo", "reboot"], check=True)
@@ -57,8 +88,21 @@ def reboot_system():
         print(f"Error rebooting system: {e}")
      
         
-""" Waits for message from Jetson Orin Nano and then executes the commend sent """
-def wait_for_command_from_orin():
+def wait_for_command_from_orin(pi: str) -> str:
+    """
+    Waits for broadcast message from Jetson Orin Nano and then executes the commend sent.
+    
+    Parameters
+    ----------
+    pi : str
+        The hostname of the raspberry pi.
+    
+    Returns
+    ----------
+    message : str
+        The message received from the Orin Nano.
+    """
+    
     # Port to listen on
     PORT = 5005
     
@@ -73,6 +117,8 @@ def wait_for_command_from_orin():
 
     print(f"Listening for broadcast messages on port {PORT}...")
     
+    message = "empty"
+    
     # Wait until command is received
     command_not_received = True
     while command_not_received:
@@ -82,47 +128,47 @@ def wait_for_command_from_orin():
         
         # Command handling
         if message == "CAPTURE_1s":
-            capture(str(fps*1), 1)
+            capture(fps*1, 1, pi)
             command_not_received = False
             
         elif message == "CAPTURE_2s":
-            capture(str(fps*2), 2)
+            capture(fps*2, 2, pi)
             command_not_received = False
             
         elif message == "CAPTURE_5s":
-            capture(str(fps*5), 5)
+            capture(fps*5, 5, pi)
             command_not_received = False
             
         elif message == "CAPTURE_10s":
-            capture(str(fps*10), 10)
+            capture(fps*10, 10, pi)
             command_not_received = False
             
         elif message == "CAPTURE_15s":
-            capture(str(fps*15), 15)
+            capture(fps*15, 15, pi)
             command_not_received = False
             
         elif message == "CAPTURE_20s":
-            capture(str(fps*20), 20)
+            capture(fps*20, 20, pi)
             command_not_received = False
             
         elif message == "CAPTURE_25s":
-            capture(str(fps*25), 25)
+            capture(fps*25, 25, pi)
             command_not_received = False
             
         elif message == "CAPTURE_30s":
-            capture(str(fps*30), 30)
+            capture(fps*30, 30, pi)
             command_not_received = False
             
         elif message == "CAPTURE_60s":
-            capture(str(fps*60), 60)
+            capture(fps*60, 60, pi)
             command_not_received = False
             
         elif message == "CAPTURE_100s":
-            capture(str(fps*100), 100)
+            capture(fps*100, 100, pi)
             command_not_received = False
             
         elif message == "GET_SERIAL":
-            get_serial_number()
+            get_serial_number(pi)
             command_not_received = False
             
         elif message == "REBOOT":
@@ -139,8 +185,16 @@ def wait_for_command_from_orin():
     return message
 
 
-""" Use HTTP REST API POST command to send all captured data to Jetson Orin Nano """
-def send_files_to_orin(send_serial):
+def send_files_to_orin(send_serial: bool):
+    """ 
+    Use HTTP REST API POST command to send all captured data to Jetson Orin Nano
+    
+    Parameters
+    ----------
+    send_serial: bool
+        Boolean that informs function what files to send back to Orin Nano.
+    """
+    
     if send_serial:
         # Jetson Orin Nano's IP address
         url = "http://192.168.249.155:5000/raspi_info"
@@ -189,7 +243,7 @@ if __name__ == "__main__":
         
     while(True):
         create_file_directories()
-        message = wait_for_command_from_orin()
+        message = wait_for_command_from_orin(pi_name)
         if message == "GET_SERIAL":
             send_files_to_orin(True)
         else:
