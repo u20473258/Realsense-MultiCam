@@ -9,8 +9,17 @@ import argparse
 app = Flask(__name__)      
      
 
-""" Uses UDP to broadcast commands to Raspberry Pi 5s in the network """
-def send_command_to_raspis(command, capture_duration):
+def send_command_to_raspis(command: str, capture_duration: int):
+    """
+    Uses UDP to broadcast commands to Raspberry Pi 5s in the network.
+    
+    Parameters
+    ----------
+    command: str
+        The type of command to broadcast to raspberry pis.
+    capture_duration: int
+        Duration of capture.
+    """
     # Broadcast address to send to all devices in the subnet
     BROADCAST_IP = "192.168.249.255"
     
@@ -23,15 +32,15 @@ def send_command_to_raspis(command, capture_duration):
 
     # Store the different capture commands
     capture_commands = ["CAPTURE_1s",
-                "CAPTURE_2s",
-                "CAPTURE_5s",
-                "CAPTURE_10s",
-                "CAPTURE_15s",
-                "CAPTURE_20s",
-                "CAPTURE_25s",
-                "CAPTURE_30s",
-                "CAPTURE_60s",
-                "CAPTURE_100s"]
+                        "CAPTURE_2s",
+                        "CAPTURE_5s",
+                        "CAPTURE_10s",
+                        "CAPTURE_15s",
+                        "CAPTURE_20s",
+                        "CAPTURE_25s",
+                        "CAPTURE_30s",
+                        "CAPTURE_60s",
+                        "CAPTURE_100s"]
     
     try:
         if command == 'C':
@@ -101,9 +110,11 @@ def send_command_to_raspis(command, capture_duration):
         sock.close()
 
 
-""" Runs the flask server """
 @app.route('/uploads', methods=['POST'])
 def upload_file():
+    """
+    Runs the flask server.
+    """
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"})
     
@@ -118,10 +129,13 @@ def upload_file():
     return jsonify({"message": f"File {file.filename} saved at {file_path}"})
 
 
-""" Receives the files sent from the raspberry pi 5s. A flask server is created and the program
-then waits for files from the pis. The server is terminated by inputting: Ctrl + C, into the 
-terminal. """
 def receive_files_from_pis():
+    """
+    Receives the files sent from the raspberry pi 5s. A flask server is created and the program
+    waits for files from the pis. The server is terminated by inputting: Ctrl + C, into the 
+    terminal.
+    """
+    
     # Delete previous uploads folder and then create a new one
     UPLOAD_FOLDER = './uploads'
     if os.path.exists(f"uploads"):
@@ -145,16 +159,16 @@ if __name__ == "__main__":
     print ("My filename is ", args.filename)
     print ("My capture duration is ", args.duration)
     
-    """ Capture images """
+    # Capture images
     if args.mode == 'capture':
         capture_duration = int(args.duration)
         send_command_to_raspis('C', capture_duration)
     else:
         send_command_to_raspis('R', -1)
         
-    """ Receive the images from the raspberry pis """
+    # Receive the images from the raspberry pis
     receive_files_from_pis()
     
-    """ Rename uploads folder """
+    # Rename uploads folder
     os.rename("uploads", args.filename)
         
