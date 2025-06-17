@@ -9,8 +9,11 @@ import csv
 app = Flask(__name__)      
      
 
-""" Uses UDP to broadcast commands to Raspberry Pi 5s in the network """
 def send_command_to_raspis():
+    """ 
+    Uses UDP to broadcast commands to Raspberry Pi 5s in the network.
+    """
+    
     # Broadcast address to send to all devices in the subnet
     BROADCAST_IP = "192.168.249.255"
     
@@ -33,9 +36,11 @@ def send_command_to_raspis():
         sock.close()
 
 
-""" Runs the flask server """
 @app.route('/raspi_info', methods=['POST'])
 def upload_file():
+    """
+    Runs the flask server.
+    """
     if 'file' not in request.files:
         return jsonify({"error": "No file part in the request"})
     
@@ -49,11 +54,17 @@ def upload_file():
     
     return jsonify({"message": f"File {file.filename} saved at {file_path}"})
 
+
 def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
     """ 
+    Extract serial numbers and store them in a excel sheet.
     
-    Extract serial numbers and store them in a excel sheet.  
-    
+    Parameters
+    ----------
+    csv_name: str
+        Name of the csv file to store all serial information of all raspberrys.
+    raspi_info_folder: str
+        Folder name containing all raspberrys individual serial information csv files..
     """
     
     # Delete previous uploads folder and then create a new one
@@ -62,7 +73,6 @@ def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
     
     csv_data = []
     for filename in os.listdir(raspi_info_folder):
-        print(filename)
         pi_name = filename.split("_")[0]
         with open(raspi_info_folder + "/" + filename, "rb") as file:
             garbage = (file.readline()).decode("utf-8")
@@ -78,14 +88,18 @@ def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
 
 if __name__ == "__main__":
     
-    """ Send broadcast message to all raspberrys to get and send their serial numbers. """
+    """
+    Send broadcast message to all raspberrys to get and send their serial numbers.
+    """
     print("Broadcasting to all connected raspberry pis...")
     send_command_to_raspis()
     
     
-    """ Receive the files sent from the raspberry pi 5s. A flask server is created and the program
+    """ 
+    Receive the files sent from the raspberry pi 5s. A flask server is created and the program
     then waits for files from the pis. The server is terminated by inputting: Ctrl + C, into the 
-    terminal. """
+    terminal.
+    """
     # Delete previous uploads folder and then create a new one
     UPLOAD_FOLDER = './raspi_info'
     if os.path.exists(f"raspi_info"):
