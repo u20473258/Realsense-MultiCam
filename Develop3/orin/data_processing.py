@@ -244,7 +244,7 @@ def get_filename(folder_path: str, date_type: str, raspi_name: str, frame_number
     folder_path : str
         Folder path of the captured data.
     data_type : str
-        Data type of the file.
+        Data type of the file: colour or depth.
     raspi_name : str
         Name of the raspberry pi object.
     frame_number : int
@@ -580,8 +580,8 @@ def main():
     print(depth_framesets)
     print(len(depth_framesets))
     
-    depth_info = {'height' : 480,
-                  'width' : 640}
+    depth_info = {'height' : 240,
+                  'width' : 428}
     
     # Sync colour data
     colour_framesets = sync_data(int(args.sync_threshold), folder_path, raspis, "colour")
@@ -598,11 +598,13 @@ def main():
     else:
         working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[0], depth_info, colour_framesets[0], colour_info, False)
     
-    # Convert depth.npy to depth.png or at least have that option
-    test_bin_filename = "post_filters_raw_7_depth_44.raw"
-    depth_info = {'height' : 240,
-                  'width' : 428}
-    filename = create_depthmap(test_bin_filename, depth_info, 300, 3000)
+    i = 0
+    for raspi in raspis:
+        binary_depth_filename = get_filename(working_data_folderpath, "depth", raspi.get_raspi_name(), depth_framesets[0][i], False)
+        png_depth_filename = create_depthmap(binary_depth_filename, depth_info, 300, 3000)
+        
+        print("Saved: " + png_depth_filename)
+        i += 1
     
     
     # Rotate images
