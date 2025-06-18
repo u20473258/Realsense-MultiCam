@@ -20,11 +20,19 @@ class raspberry_pi:
         """
         Constructor.
         
-        Args:
-        raspi_name (str): The name of the rasbperry pi object represents.
-        serial_number (int): The serial number of the attached D455 camera.
-        folder_path (str): The folder path containing data collected.
+        Parameters
+        ----------
+        raspi_name : str
+            The name of the rasbperry pi object represents.
+        serial_number : int
+            The serial number of the attached D455 camera.
+        folder_path : str
+            The folder path containing data collected.
         
+        Returns
+        ----------
+        RPi : raspberry_pi
+            A raspberry_pi object.
         """
         
         self.raspi_name = raspi_name
@@ -57,10 +65,12 @@ class raspberry_pi:
     
     def load_cam_intrinsics(self) -> list:
         """
-        Loads the camera instrinsics from a .csv file.
+        Loads the camera instrinsics from a .txt file.
         
-        Returns:
-        list: A list of the total number of frames for each raspberry pi (fx, fy, ppx, ppy).
+        Returns
+        ----------
+        intrinsics : list
+            A list of the D455 intrinsics connected to the give RPi (fx, fy, ppx, ppy).
         """
     
         # Open the frame_metadata csv
@@ -81,11 +91,15 @@ class raspberry_pi:
         """
         Counts the number of frames, of the given data type, captured by the raspberry pi.
         
-        Args:
-        data_type (str): The data type of the frames to count.
+        Parameters
+        ----------
+        data_type : str
+            The data type of the frames to count.
         
-        Returns:
-        int: Total number of frames for collected by the raspberry pi.
+        Returns
+        ----------
+        total_num_frames : int
+            Total number of frames for collected by the raspberry pi.
         """
         
         num_frames = 0
@@ -123,11 +137,15 @@ class raspberry_pi:
         Extracts all the frame numbers of a given data type for all given raspberry pis
         in the given folder path.
         
-        Args:
-        data_type (str): The data type of the frames to count.
+        Parameters
+        ----------
+        data_type : str
+            The data type of the frame numbers to extract.
         
-        Returns:
-        defaultdict: A list of the frame numbers for the raspberry pi.
+        Returns
+        ----------
+        frame_numbers : list
+            A list of the frame numbers for the raspberry pi.
         """
                 
         # Scan directory and get an iterator
@@ -189,12 +207,17 @@ def create_raspberry_pi(raspi: str, folder_path: str) -> raspberry_pi:
     """
     Creates a new raspberry pi object.
     
-    Args:
-    raspi (str): The name of the raspberry pi.
-    folder_path (str): The folder path of the data to synchronise.
+    Parameters
+    ----------
+    raspi : str
+        The name of the raspberry pi.
+    folder_path : str
+        The folder path of the captured data.
     
-    Returns:
-    raspberry_pi: A new raspberry_pi object.
+    Returns
+    ----------
+    raspi : raspberry_pi
+        A new raspberry_pi object.
     """
     
     # Get the serial number from raspi_serial_numbers csv
@@ -216,44 +239,63 @@ def get_filename(folder_path: str, date_type: str, raspi_name: str, frame_number
     """
     Function that compiles the filename into a single string using given information.
     
-    folder_path (str): The folder path of the data to synchronise.
-    data_type (str): The data type of the frames to synchronise.
-    raspi_name (str): The name of the raspberry pi object.
-    frame_number (int): Frame number of ToAt metadata file.
-    is_metadata (bool): Indicate if the file being extracted is metadata.
+    Parameters
+    ----------
+    folder_path : str
+        Folder path of the captured data.
+    data_type : str
+        Data type of the file.
+    raspi_name : str
+        Name of the raspberry pi object.
+    frame_number : int
+        Frame number of file.
+    is_metadata : bool 
+        Indicate if the file being extracted is metadata.
     
-    Return: (str) filename
+    Returns
+    ----------
+    framesets : list
+        A list of framesets of closely-matching frames.
     """
     
     filename = ""
     filename += folder_path  
-    frame_number = str(frame_number) 
+    frame_num = str(frame_number) 
     
     if date_type == "depth":
         if is_metadata:
-            filename = filename + raspi_name + "_depth_metadata_" + frame_number + ".txt"
+            filename = filename + raspi_name + "_depth_metadata_" + frame_num + ".txt"
         else:
-            filename = filename + raspi_name + "_depth_" + frame_number + ".csv"
+            filename = filename + raspi_name + "_depth_" + frame_num + ".csv"
     else:
         if is_metadata:
-            filename = filename + raspi_name + "_colour_metadata_" + frame_number + ".txt"
+            filename = filename + raspi_name + "_colour_metadata_" + frame_num + ".txt"
         else:
-            filename = filename + raspi_name + "_colour_" + frame_number + ".png"
+            filename = filename + raspi_name + "_colour_" + frame_num + ".png"
     
     return filename
 
 
 def extract_ToAt_from_file(folder_path: str, date_type: str, raspi_name: str, frame_number: int) -> int: 
     """
-    Gets the ToAt from a metadata file with the given .txt filename.
+    Gets the Time of Arrival timestamp (ToAt) from a metadata file with the given .txt filename.
 
-    folder_path (str): The folder path of the data to synchronise.
-    data_type (str): The data type of the frames to synchronise.
-    raspi_name (str): The name of the raspberry pi object.
-    frame_number (int): Frame number of ToAt metadata file.
-
-    Return: (int) the extracted ToAt
-    """   
+    Parameters
+    ----------
+    folder_path : str
+        Folder path of the captured data.
+    data_type : str
+        Data type of the frames to synchronise.
+    raspi_name : str
+        Name of the raspberry pi object.
+    frame_number : int
+        Frame number of ToAt metadata file.
+    
+    Returns
+    ----------
+    ToAt : int
+        Extracted ToAt.
+    """
     
     file_name = get_filename(folder_path, date_type, raspi_name, frame_number, True)
      
@@ -278,22 +320,30 @@ def extract_ToAt_from_file(folder_path: str, date_type: str, raspi_name: str, fr
                     # The ToAt should be the second item in the list
                     return int(split[1])
        
+    return -1
 
 def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: str) -> list:
     """
     Uses the Time of Arrival timestamps (ToAt) of the depth frame metadata to find
     closely-matching frames (when the difference in ToAt is within the given threshold).
     
-    Args:
-    threshold (int): The maximum ToAt allowed between frames.
-    folder_path (str): The folder path of the data to synchronise.
-    raspberry_pis (list): The list of raspberry pi objects.
-    data_type (str): The data type of the frames to synchronise.
+    Parameters
+    ----------
+    threshold : int
+        The maximum ToAt allowed between frames.
+    folder_path : str
+        The folder path of the data to synchronise.
+    raspberry_pis : list
+        The list of raspberry pi objects.
+    data_type : str
+        The data type of the frames to synchronise.
     
-    Returns:
-    list: A list of framesets of closely-matching frames.
+    Returns
+    ----------
+    framesets : list
+        A list of framesets of closely-matching frames.
     """
-        
+    
     # Get and store the current frame index for each raspberry pi
     curr_frame_index = []
     for raspi in raspberry_pis:
@@ -304,7 +354,10 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
         
     # Loop until just one camera has no more frames to match
     all_cameras_have_frames = True
+    # print(raspberry_pis[0].get_frame_numbers(data_type))
+    # print(raspberry_pis[1].get_frame_numbers(data_type))
     while all_cameras_have_frames:
+    # for i in range(0, 20):
         curr_frameset = copy.deepcopy(curr_frame_index)
         # Amongst the current frames, search for the one with the largest ToAt (most recent frame)
         ref_ToAt = extract_ToAt_from_file(folder_path, data_type, raspberry_pis[0].get_raspi_name(), 
@@ -325,6 +378,7 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
         matching_frame_counter = 0
         raspi = 0
         new_curr_frame_index = copy.deepcopy(curr_frame_index)
+        # print("Ref " + str(raspberry_pis[ref_raspi].get_frame_numbers(data_type)[curr_frame_index[ref_raspi]]) + ": " + raspberry_pis[ref_raspi].get_raspi_name() + " -> " + str(ref_ToAt))
         while continue_search and raspi < len(raspberry_pis):
             # Do not search for matching frame within reference raspberry's frames
             if raspi != ref_raspi:
@@ -333,7 +387,9 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
                     curr_ToAt = extract_ToAt_from_file(folder_path, data_type, raspberry_pis[raspi].get_raspi_name(), 
                                                        raspberry_pis[raspi].get_frame_numbers(data_type)[frame])
                     
+                    # print(raspberry_pis[raspi].get_raspi_name() + " " + str(raspberry_pis[raspi].get_frame_numbers(data_type)[curr_frame_index[raspi]]) + ": " + str(curr_ToAt))
                     if abs(curr_ToAt - ref_ToAt) < threshold:
+                        # print("Valid Frame: " + raspberry_pis[raspi].get_raspi_name() + " " + str(raspberry_pis[raspi].get_frame_numbers(data_type)[curr_frame_index[raspi]]) + ": " + str(curr_ToAt))
                         curr_frameset[raspi] = raspberry_pis[raspi].get_frame_numbers(data_type)[frame]
                         
                          # Store this frame number index temporarily
@@ -347,12 +403,15 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
                     # Check if the current ToAt is much bigger than the reference one or no more frames to match, terminate search if it is
                     elif curr_ToAt > ref_ToAt or frame >= (raspberry_pis[raspi].get_total_num_frames(data_type) - 1):
                         continue_search = False
+                        # # Increment the frame index of the raspberry pi that ended the search
+                        # curr_frame_index[raspi] += 1
                         break
             
             raspi += 1
                         
         # Save frameset if it is valid
         if matching_frame_counter == (len(raspberry_pis) - 1):
+            # print("Valid Frameset")
             all_framesets.append(curr_frameset)
             
             # Update current frame number indexes
@@ -360,6 +419,9 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
             curr_frame_index[ref_raspi] += 1
                 
         else:
+            # # Increment the frame index of the reference raspberry pi
+            # curr_frame_index[ref_raspi] += 1
+            
             # Increment all current frame indexes
             for raspi in range(0, len(raspberry_pis)):
                 curr_frame_index[raspi] += 1
@@ -371,6 +433,131 @@ def sync_data(threshold: int, folder_path: str, raspberry_pis: list, data_type: 
             
     return all_framesets    
 
+   
+def extract_working_data(folder_path: str, raspberry_pis: list, depth_frameset: list, depth_info: dict, 
+                         colour_frameset: list, colour_info: dict, delete_other_files: bool) -> str:
+    """
+    Separates the given framesets' files into a separate folder and if delete_other_files is True, deletes
+    unused data to conserve storage.
+    
+    Parameters
+    ----------
+    folder_path : str
+        The folder path of the captured data.
+    raspberry_pis : list
+        The list of raspberry pi objects.
+    depth_frameset : list
+        Frameset of depth frames to be used.
+    depth_info : dict
+        Hold information about the depth frame, e.g. dimensions.
+    colour_frameset : list
+        Frameset of colour frames to be used.
+    delete_other_files : bool
+        Informs function whether to delete remaining files.
+    
+    Returns
+    ----------
+    filepath : str
+        The file path of the folder containing working data.
+    """
+ 
+    # Create new folder for files to process
+    working_data_filepath = "working_data" 
+    if os.path.exists(working_data_filepath):
+        shutil.rmtree(working_data_filepath)
+    os.makedirs(working_data_filepath, exist_ok=True)
+    working_data_filepath += "/"
+    
+    # For each depth frame
+    i = 0
+    for depth_frame_number in depth_frameset:
+        # Create the file paths for the depth frame
+        old_depth_frame_filepath = get_filename(folder_path, "depth", raspberry_pis[i].get_raspi_name(), depth_frame_number, False)
+        new_depth_frame_filepath = get_filename(working_data_filepath, "depth", raspberry_pis[i].get_raspi_name(), depth_frame_number, False)
+        
+        # Move depth frame to new folder        
+        shutil.move(old_depth_frame_filepath, new_depth_frame_filepath)
+        
+        # Create the file paths for the depth frame metadata
+        old_depth_frame_filepath = get_filename(folder_path, "depth", raspberry_pis[i].get_raspi_name(), depth_frame_number, True)
+        new_depth_frame_filepath = get_filename(working_data_filepath, "depth", raspberry_pis[i].get_raspi_name(), depth_frame_number, True)
+        
+        # Move depth frame to new folder        
+        shutil.move(old_depth_frame_filepath, new_depth_frame_filepath)
+        
+        i += 1
+        
+        print("Raspi " + str(i) + " depth image " + str(depth_frame_number) + " copied.")
+        
+    # For each colour frame
+    i = 0
+    for colour_frame_number in colour_frameset:
+        # Create the file paths for the colour frame
+        old_colour_frame_filepath = get_filename(folder_path, "colour", raspberry_pis[i].get_raspi_name(), colour_frame_number, False)
+        new_colour_frame_filepath = get_filename(working_data_filepath, "colour", raspberry_pis[i].get_raspi_name(), colour_frame_number, False)
+        
+        # Move colour frame to new folder        
+        shutil.move(old_colour_frame_filepath, new_colour_frame_filepath)
+        
+        # Create the file paths for the colour frame metadata
+        old_colour_frame_filepath = get_filename(folder_path, "colour", raspberry_pis[i].get_raspi_name(), colour_frame_number, True)
+        new_colour_frame_filepath = get_filename(working_data_filepath, "colour", raspberry_pis[i].get_raspi_name(), colour_frame_number, True)
+        
+        # Move colour frame to new folder        
+        shutil.move(old_colour_frame_filepath, new_colour_frame_filepath)
+        
+        i += 1
+        
+        print("Raspi " + str(i) + " colour image " + str(colour_frame_number) + " copied.")
+        
+    # Delete folder
+    if delete_other_files:
+        shutil.rmtree(folder_path)
+    
+    return working_data_filepath
+
+
+def create_depthmap(filepath: str, depth_info: dict, min_depth: int, max_depth: int) -> str:
+    """
+    Converts the given binary depth file to a depth map .png file.
+    
+    Parameters
+    ----------
+    filepath : str
+        The folder path of the captured data.
+    depth_info : dict
+        Hold information about the depth frame, e.g. dimensions.
+    min_depth : int
+        Minimum depth value to include in depth map.
+    max_depth : int
+        Minimum depth value to include in depth map.
+    
+    Returns
+    ----------
+    filepath : str
+        The file path of the depthmap.
+    """
+    
+    depth_array = np.fromfile(filepath, dtype=np.uint16).reshape((depth_info['height'], depth_info['width']))
+    
+    # Clip the values for visualization
+    depth_clipped = np.clip(depth_array, min_depth, max_depth)
+
+    # Normalize to 0–255 (8-bit) for colormap
+    depth_normalized = ((depth_clipped - min_depth) / (max_depth - min_depth) * 255.0).astype(np.uint8)
+
+    # Apply colormap
+    heatmap = cv2.applyColorMap(depth_normalized, cv2.COLORMAP_JET)
+    
+    # Save depth image as .png
+    depth_filename = filepath[ : len(filepath)- 3] + "png"
+    # cv2.imwrite(depth_filename, depth_colormap)
+    cv2.imwrite(depth_filename, heatmap)
+    
+    print(depth_filename + " depth image .pngs saved.")
+    
+    return depth_filename
+            
 
 def main():
     # Get user input
@@ -380,19 +567,52 @@ def main():
     parser.add_argument("sync_threshold")
     parser.add_argument("delete_unsynced", choices=['Y', 'y', 'N', 'n'])
     args=parser.parse_args()
-    print ("My filename is ", args.folder_path)
+    
+    folder_path = args.folder_path + "/"
     
     # Create raspberry pi objects
     raspis = []
     for raspi in args.raspberry_pis:
-        raspis.append(create_raspberry_pi(raspi, args.folder_path))
+        raspis.append(create_raspberry_pi(raspi, folder_path))
                 
-    framesets = sync_data(int(args.sync_threshold), args.folder_path, raspis, "depth")
-    print(framesets)
-    print(len(framesets))
+    # Sync depth data
+    depth_framesets = sync_data(int(args.sync_threshold), folder_path, raspis, "depth")
+    print(depth_framesets)
+    print(len(depth_framesets))
+    
+    depth_info = {'height' : 480,
+                  'width' : 640}
+    
+    # Sync colour data
+    colour_framesets = sync_data(int(args.sync_threshold), folder_path, raspis, "colour")
+    print(colour_framesets)
+    print(len(colour_framesets))
+    
+    colour_info = {'height' : 480,
+                  'width' : 640}
+    
+    # Separate processing data
+    if args.delete_unsynced == 'Y' or args.delete_unsynced == 'y':
+        working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[0], depth_info, colour_framesets[0], colour_info, True)
+    
+    else:
+        working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[0], depth_info, colour_framesets[0], colour_info, False)
+    
+    # Convert depth.npy to depth.png or at least have that option
+    test_bin_filename = "post_filters_raw_7_depth_44.raw"
+    depth_info = {'height' : 240,
+                  'width' : 428}
+    filename = create_depthmap(test_bin_filename, depth_info, 300, 3000)
+    
+    
+    # Rotate images
+    
+    # Depth croppping
+    
+    # Background subtraction
+    
+    
 
 if __name__ == "__main__":
     main()
     
-    
-        
