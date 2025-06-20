@@ -114,8 +114,8 @@ class raspberry_pi:
             # Get all the filenames in the directory and loop through them
             for root, dirs, files in os.walk(self.folder_path):
                 for file in files: 
-                    # Count only the .csv files that match the filename 
-                    if file.count(filename) != 0 and file.endswith('.csv'):
+                    # Count only the .raw files that match the filename 
+                    if file.count(filename) != 0 and file.endswith('.raw'):
                         num_frames += 1
                         
         # Search for colour frames
@@ -179,12 +179,12 @@ class raspberry_pi:
                     
                     # Add a check for if any .png depth image files exist in folder
                     if split1[2] == "image":
-                        # The 4th item in the first split will be <fnum>.csv. Split again using . as separator
+                        # The 4th item in the first split will be <fnum>.raw. Split again using . as separator
                         split2 = split1[3].split(".")
                         frame_num = int(split2[0])
                         
                     else:
-                        # The 3rd item in the first split will be <fnum>.csv. Split again using . as separator
+                        # The 3rd item in the first split will be <fnum>.raw. Split again using . as separator
                         split2 = split1[2].split(".")
                         frame_num = int(split2[0])
                     
@@ -266,7 +266,7 @@ def get_filename(folder_path: str, date_type: str, raspi_name: str, frame_number
         if is_metadata:
             filename = filename + raspi_name + "_depth_metadata_" + frame_num + ".txt"
         else:
-            filename = filename + raspi_name + "_depth_" + frame_num + ".csv"
+            filename = filename + raspi_name + "_depth_" + frame_num + ".raw"
     else:
         if is_metadata:
             filename = filename + raspi_name + "_colour_metadata_" + frame_num + ".txt"
@@ -591,16 +591,20 @@ def main():
     colour_info = {'height' : 480,
                   'width' : 640}
     
+    depth_frameset = 50
+    colour_frameset = 50
+    
     # Separate processing data
     if args.delete_unsynced == 'Y' or args.delete_unsynced == 'y':
-        working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[0], depth_info, colour_framesets[0], colour_info, True)
+        working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[depth_frameset], depth_info, colour_framesets[colour_frameset], colour_info, True)
     
     else:
-        working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[0], depth_info, colour_framesets[0], colour_info, False)
+        working_data_folderpath = extract_working_data(folder_path, raspis, depth_framesets[depth_frameset], depth_info, colour_framesets[colour_frameset], colour_info, False)
     
+    # Convert depth.npy to depth.png or at least have that option
     i = 0
     for raspi in raspis:
-        binary_depth_filename = get_filename(working_data_folderpath, "depth", raspi.get_raspi_name(), depth_framesets[0][i], False)
+        binary_depth_filename = get_filename(working_data_folderpath, "depth", raspi.get_raspi_name(), depth_framesets[depth_frameset][i], False)
         png_depth_filename = create_depthmap(binary_depth_filename, depth_info, 300, 3000)
         
         print("Saved: " + png_depth_filename)
