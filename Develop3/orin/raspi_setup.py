@@ -64,7 +64,7 @@ def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
     csv_name: str
         Name of the csv file to store all serial information of all raspberrys.
     raspi_info_folder: str
-        Folder name containing all raspberrys individual serial information csv files..
+        Folder name containing all raspberrys individual serial information csv files.
     """
     
     # Delete previous uploads folder and then create a new one
@@ -75,7 +75,10 @@ def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
     for filename in os.listdir(raspi_info_folder):
         pi_name = filename.split("_")[0]
         with open(raspi_info_folder + "/" + filename, "rb") as file:
+            # Ignore the first row, the data needed is in the second row
             garbage = (file.readline()).decode("utf-8")
+            
+            # Extract the serial number by spliting based on whitespaces
             serial = int(((file.readline()).decode("utf-8")).split(' ')[12])
             
             csv_data.append([pi_name, serial])
@@ -83,6 +86,7 @@ def save_raspi_to_data_csv(csv_name: str, raspi_info_folder: str):
     # Write all data to csv file     
     with open(csv_name, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
+        writer.writerow(["raspberry", "serial_number"])
         writer.writerows(csv_data)
         
 
