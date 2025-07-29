@@ -23,29 +23,36 @@ if __name__ == "__main__":
     # serial_numbers = ["138322250306", "138322252073", "141322252627", "141322252882"]
     serial_numbers = ["138322250306", "141322252882"]
     
+    # Store max and minimum depth values for cropping
+    min_depth = 0.0
+    max_depth = 1200.0
+    
     # Create the folder to store point clouds
     if os.path.exists("greyscale_maps"):
         shutil.rmtree("greyscale_maps")
-    os.makedirs("greyscale_maps", exist_ok=True)
+    os.makedirs("greyscale_maps", exist_ok=True)    
     
     for i, device in enumerate(serial_numbers):
         serial = np.int64(device)
         
         # Load the depth image from a .npy file
         depth_image = load_image_from_npy(serial, frame_set[i])
+        
+        # Clip the values for visualization
+        depth_clipped = np.clip(depth_image, min_depth, max_depth)
+        
+        # Normalize to 0–255 (8-bit) for colormap
+        depth_normalized = ((depth_clipped - min_depth) / (max_depth - min_depth) * 255.0).astype(np.uint8)
 
-        # Normalize the depth image to 0-255 for visualization
-        depth_normalized = cv2.normalize(depth_image, None, 0, 255, cv2.NORM_MINMAX)
-
-        # Convert to uint8 (8-bit) format
-        depth_normalized = depth_normalized.astype(np.uint8)
+        # Apply colormap
+        depth_heatmap = cv2.applyColorMap(depth_normalized, cv2.COLORMAP_JET)
 
         # Display the depth image in greyscale
-        cv2.imshow("Depth Image", depth_normalized)
+        cv2.imshow("Depth Image", depth_heatmap)
         
         # Save depth greyscale colourmap
         colourmap_filename = f"greyscale_maps/depth_frame_{frame_set[i]}_cam{serial}.png"
-        cv2.imwrite(colourmap_filename, depth_normalized)
+        cv2.imwrite(colourmap_filename, depth_heatmap)
         
         # Perform distance cropping
         
